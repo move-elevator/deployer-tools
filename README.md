@@ -62,6 +62,10 @@ Read the [documentation](docs/TYPO3.md) for detailed installation instructions a
 - [Debug helper](docs/DEBUG.md)
 
 
+## ©️ Credits
+
+This project is a fork and further development of the [XIMA Deployer Tools](https://github.com/xima-media/xima-deployer-tools).
+
 ## ⭐ License
 
 This project is licensed under [GNU General Public License 3.0 (or later)](LICENSE).
