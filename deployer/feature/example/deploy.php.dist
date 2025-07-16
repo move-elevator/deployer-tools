@@ -1,0 +1,41 @@
+<?php
+
+namespace Deployer;
+
+/**
+ * This is just an example configuration to enable the feature branch deployment within your deployment
+ */
+
+require_once(__DIR__ . '/vendor/move-elevator/deployer-tools/deployer/feature/autoload.php');
+
+/*
+ * Feature Branch Deployment
+ *
+ */
+set('project', 'example project');
+set('feature_templates', [
+    __DIR__ . '/.deployment/deployer/templates/.env.dist' => '/shared/.env'
+]);
+
+/**
+ * Feature Sync
+ */
+set('feature_sync_config', __DIR__ . '/.deployment/db-sync-tool/sync-stage-to-feature.yaml');
+set('feature_sync_target_path', '{{deploy_path}}/shared/.env');
+
+/**
+ * Feature Notification
+ */
+set('msteams_webhook', 'ToDo');
+
+/**
+ * Feature Url Shortener
+ */
+set('feature_url_shortener', true);
+
+/**
+ * Feature Index
+ */
+set('feature_index_title', 'example<em>project</em>');
+
+// ...

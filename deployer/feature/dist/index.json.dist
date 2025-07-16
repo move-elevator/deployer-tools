@@ -1,0 +1,14 @@
+{
+  "projectName": "{{DEPLOYER_CONFIG_FEATURE_INDEX_TITLE}}",
+  "defaultApplicationPath": "{{DEPLOYER_CONFIG_FEATURE_INDEX_APP_PATH}}",
+  "applicationType": "{{DEPLOYER_CONFIG_FEATURE_INDEX_APP_TYPE}}",
+  "jira": {
+    "browse": "{{DEPLOYER_CONFIG_FEATURE_INDEX_JIRA_BROWSE}}",
+    "api": "{{DEPLOYER_CONFIG_FEATURE_INDEX_JIRA_API}}",
+    "auth": "{{DEPLOYER_CONFIG_FEATURE_INDEX_JIRA_AUTH}}"
+  },
+  "git": {
+    "branch": "{{DEPLOYER_CONFIG_FEATURE_INDEX_GIT_BRANCH}}"
+  },
+  "additionalLinks": "{{DEPLOYER_CONFIG_FEATURE_INDEX_ADDITIONAL_LINKS}}"
+}

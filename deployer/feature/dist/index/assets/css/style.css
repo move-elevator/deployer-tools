@@ -1,0 +1,76 @@
+.pill {
+    display: inline-block;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 50px;
+    color: #aaa;
+    margin: 0 15px 0 5px;
+    font-size: 12px;
+    background: transparent;
+    text-align: center;
+    white-space: nowrap;
+    min-width: 52px;
+    font-family: "Menlo","Consolas","Roboto Mono","Ubuntu Monospace","Noto Mono","Oxygen Mono","Liberation Mono",monospace,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+}
+
+.pill[data-type] {
+    background: #0277BD;
+    color: #fff;
+    border: 0;
+    font-size: 20px;
+}
+.pill[data-type="release"] {
+    background: #BF360C;
+}
+.pill[data-type="feature"] {
+    background: #00695C;
+}
+.pill[data-type="main"], .pill[data-type="master"] {
+    background: #F57F17;
+}
+.pill:hover {
+    text-decoration: none;
+}
+.pill.person {
+    padding: 3px 6px;
+    min-width: 15px;
+    margin: 0;
+    background: #ccc;
+    color: white;
+    font-size: 10px;
+}
+kbd {
+    font-size: 10px;
+}
+.status {
+    padding: 3px 6px;
+    min-width: 15px;
+    margin: 0 5px;
+    background-color: #ccc;
+    color: white;
+    font-size: 10px;
+}
+.status.green {
+    background-color: #33691E;
+}
+.status.yellow {
+    background-color: #F9A825;
+}
+.status.red {
+    background-color: #D84315;
+}
+.status.blue {
+    background-color: #01579B;
+}
+[data-tooltip].pill, kbd[data-tooltip], .status[data-tooltip]  {
+    border-bottom: 1px solid;
+}
+kbd[data-tooltip], .status[data-tooltip]  {
+    border-bottom: inherit;
+}
+progress {
+    height: .125rem;
+}
+h3 {
+    width: max-content;
+}

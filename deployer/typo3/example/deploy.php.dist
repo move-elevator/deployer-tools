@@ -1,0 +1,12 @@
+<?php
+
+namespace Deployer;
+
+require_once(__DIR__ . '/vendor/move-elevator/deployer-tools/deployer/typo3/autoload.php');
+require_once(__DIR__ . '/vendor/move-elevator/deployer-tools/deployer/feature/autoload.php');
+
+// Config
+set('app_path', '.');
+
+// Hosts
+import('.deployment/deployer/hosts.yaml');

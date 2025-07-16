@@ -1,0 +1,13 @@
+<?php
+
+namespace Deployer;
+
+require_once(__DIR__ . '/vendor/move-elevator/deployer-tools/autoload.php');
+require_once(__DIR__ . '/vendor/move-elevator/deployer-tools/deployer/feature/autoload.php');
+require_once(__DIR__ . '/vendor/move-elevator/deployer-tools/deployer/symfony/autoload.php');
+
+// Config
+set('app_path', 'app');
+
+// Hosts
+import('.deployment/deployer/hosts.yaml');

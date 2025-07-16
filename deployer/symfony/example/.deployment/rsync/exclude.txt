@@ -1,0 +1,17 @@
+/build*
+/webpack*
+/node_modules
+/Gruntfile.js
+/package.json
+/package-lock.json
+/phpunit.xml.dist
+/assets
+/reports
+
+/phpcs.xml
+/phpstan*
+/TsLint.yaml
+/README.md
+
+/var/cache/
+/var/log/

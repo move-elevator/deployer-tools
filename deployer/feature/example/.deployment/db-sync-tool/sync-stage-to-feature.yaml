@@ -1,0 +1,21 @@
+type: TYPO3
+target:
+  name: Demo Stage (feature)
+  host: 127.0.0.1
+  user: user
+  path: /var/www/html/.dep/instances/feature/shared/.env
+  ssh_key: /root/.ssh/id_rsa
+origin:
+  name: Demo Stage (main)
+  host: 127.0.0.1
+  user: user
+  path: /var/www/html/.dep/instances/main/shared/.env
+  ssh_key: /root/.ssh/id_rsa
+ignore_table:
+  - cache_*
+# optionally
+files:
+  config:
+    -
+      origin: /var/www/html/.dep/instances/main/shared/public/upload/media/
+      exclude: []

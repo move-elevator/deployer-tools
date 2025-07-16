@@ -1,0 +1,9 @@
+hosts:
+  stage:  # demo host
+    hostname: 127.0.0.1
+    remote_user: user
+    database_user: db_user
+    deploy_path: /var/www/html/
+#    labels:
+#      type: feature-branch-deployment
+    public_url: https://demo.local/
