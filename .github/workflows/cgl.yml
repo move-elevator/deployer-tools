@@ -41,6 +41,8 @@ jobs:
         run: composer-unused --excludePackage=deployer/deployer --excludePackage=sourcebroker/deployer-extended
 
       # Linting
+      - name: Update composer.lock
+        run: composer update --lock
       - name: Lint composer.json
         run: composer lint:composer
       - name: Lint Editorconfig
