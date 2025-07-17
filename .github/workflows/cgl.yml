@@ -38,7 +38,7 @@ jobs:
       - name: Re-install Composer dependencies
         uses: ramsey/composer-install@v3
       - name: Check for unused dependencies
-        run: composer-unused
+        run: composer-unused --excludePackage=sourcebroker/deployer-extended
 
       # Linting
       - name: Lint composer.json
