@@ -173,9 +173,9 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
 
     private function initDatabaseConfiguration(MySqlDatabase $database, MySqlUser $user): void
     {
-        set('DEPLOYER_CONFIG_DATABASE_USER', $user->getName());
-        set('DEPLOYER_CONFIG_DATABASE_NAME', $database->getName());
-        set('DEPLOYER_CONFIG_DATABASE_HOST', $database->getHostName());
-        set('DEPLOYER_CONFIG_DATABASE_PASSWORD', VarUtility::getDatabasePassword());
+        set('database_user', $user->getName());
+        set('database_name', $database->getName());
+        set('database_host', $database->getHostName());
+        set('database_password', VarUtility::getDatabasePassword());
     }
 }
