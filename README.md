@@ -3,11 +3,13 @@
 # Deployer Tools
 
 [![CGL](https://img.shields.io/github/actions/workflow/status/move-elevator/deployer-tools/cgl.yml?label=cgl&logo=github)](https://github.com/move-elevator/deployer-tools/actions/workflows/cgl.yml)
-[![Supported PHP Versions](https://img.shields.io/packagist/dependency-v/move-elevator/deployer-tools/php?logo=php)](https://packagist.org/packages/move-elevator/deployer-tools)
+[![License](https://img.shields.io/github/license/move-elevator/deployer-tools)](LICENSE.md)
 
 </div>
 
 > The Deployer Tools combine multiple [deployer](https://deployer.org/) recipes for an improved deployment process and workflow.
+
+This recipes are mainly used in [move:elevator](https://www.move-elevator.de/) projects. It is not meant to be used anywhere else.
 
 - [Installation](#installation)
 - [Feature Branch Deployment](#feature-branch-deployment)
@@ -62,7 +64,7 @@ Read the [documentation](docs/TYPO3.md) for detailed installation instructions a
 - [Debug helper](docs/DEBUG.md)
 
 
-## ©️ Credits
+## 💛 Acknowledgements
 
 This project is a fork and further development of the [XIMA Deployer Tools](https://github.com/xima-media/xima-deployer-tools).
 
