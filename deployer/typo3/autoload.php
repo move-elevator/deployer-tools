@@ -18,3 +18,4 @@ require_once($vendorRoot . '/vendor/move-elevator/deployer-tools/deployer/typo3/
 require_once($vendorRoot . '/vendor/move-elevator/deployer-tools/deployer/typo3/task/deploy_cache.php');
 require_once($vendorRoot . '/vendor/move-elevator/deployer-tools/deployer/typo3/task/deploy_database.php');
 require_once($vendorRoot . '/vendor/move-elevator/deployer-tools/deployer/typo3/task/deploy_setup.php');
+require_once($vendorRoot . '/vendor/move-elevator/deployer-tools/deployer/typo3/task/cache_warmup.php');
