@@ -21,6 +21,7 @@
 	"runLocally",
 	"set",
 	"task",
-	"test"
+	"test",
+  	"has"
   ]
 }
