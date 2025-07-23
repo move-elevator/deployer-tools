@@ -47,6 +47,16 @@ dep deploy:cache:clear
 dep deploy:cache:warmup
 ```
 
+> [!NOTE]
+> This is just a simple curl request for the public URL configuration of the deployer host.
+
+```bash
+dep cache:warmup
+```
+
+> [!NOTE]
+> This is using the [EXT:typo3-warming](https://github.com/eliashaeussler/typo3-warming) extension to warm up the cache.
+
 ### Clearing and warming the cache
 Clearing and warming the cache in one combined task
 
