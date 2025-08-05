@@ -10,6 +10,7 @@ use Mittwald\ApiClient\Generated\V2\Clients\Database\DeleteMysqlDatabase\DeleteM
 use Mittwald\ApiClient\Generated\V2\Clients\Database\GetMysqlDatabase\GetMysqlDatabaseOKResponse;
 use Mittwald\ApiClient\Generated\V2\Clients\Database\GetMysqlUser\GetMysqlUserOKResponse;
 use Mittwald\ApiClient\Generated\V2\Clients\Database\GetMysqlUser\GetMysqlUserRequest;
+use Mittwald\ApiClient\Generated\V2\Schemas\Database\CharacterSettings;
 use Mittwald\ApiClient\Generated\V2\Schemas\Database\MySqlUser;
 use Mittwald\ApiClient\MittwaldAPIV2Client;
 use Mittwald\ApiClient\Generated\V2\Clients\Database\ListMysqlDatabases\ListMysqlDatabasesRequest;
@@ -50,10 +51,15 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
                 new CreateMysqlDatabaseRequest(
                     projectId: get('mittwald_project_id'),
                     body: new CreateMysqlDatabaseRequestBody(
-                        database: new CreateMySqlDatabase(
+                        database: (new CreateMySqlDatabase(
                             $this->getFeatureName(),
                             get('mittwald_project_id'),
                             get('mittwald_database_version', '8.4')
+                        ))->withCharacterSettings(
+                            new CharacterSettings(
+                                characterSet: get('mittwald_database_character_set', 'utf8mb4'),
+                                collation: get('mittwald_database_collation', 'utf8mb4_unicode_ci')
+                            )
                         ),
                         user: new CreateMySqlUserWithDatabase(
                             CreateMySqlUserWithDatabaseAccessLevel::full,
