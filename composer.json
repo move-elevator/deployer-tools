@@ -17,7 +17,7 @@
 		"deployer/deployer": "^7.0",
 		"mittwald/api-client": "^2.1",
 		"sourcebroker/deployer-extended": "^24.0",
-		"sourcebroker/deployer-loader": "^2.0.1"
+		"sourcebroker/deployer-loader": "^5.0.0"
 	},
 	"require-dev": {
 		"armin/editorconfig-cli": "^1.0 || ^2.0",
