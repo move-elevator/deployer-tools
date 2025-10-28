@@ -48,7 +48,6 @@ task('security:check:npm', function () {
         $output = runLocally('npm audit --json --only=prod --prefix {{security_npm_path}}');
     } catch (RunException $exception) {
         $output = ($exception->getOutput());
-        throw new GracefulShutdownException($output);
     }
     $vulnerabilities = json_decode($output, true);
     $formattedIssues = formatNpmIssues($vulnerabilities);
