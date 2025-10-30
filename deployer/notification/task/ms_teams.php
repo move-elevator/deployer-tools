@@ -15,6 +15,7 @@ task('msteams:notify', function () {
  * @param string $message Message to be displayed in MS Teams.
  * @param string $color Highlight color. Not in use with webhook v2.
  * @return void
+ * @throws GracefulShutdownException
  */
 function sendMessage(string $message = '', string $color = ''): void
 {

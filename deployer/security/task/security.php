@@ -114,7 +114,7 @@ function checkNpmConsoleTools(): void
 function formatComposerIssues(?array $issues): array
 {
     $formattedIssues = [];
-    if (get('security_composer_command') === COMMAND_SYMFONY) {
+    if (COMMAND_SYMFONY === get('security_composer_command')) {
         foreach ($issues as $key => $issue) {
 
             if (!array_key_exists('advisories', $issues)) {
@@ -171,7 +171,9 @@ function formatNpmIssues(?array $issues): array
 
     foreach ($issues['vulnerabilities'] as $key => $issue) {
         foreach ($issue['via'] as $advisory) {
-            if (!is_array($advisory)) continue;
+            if (!is_array($advisory)) {
+                continue;
+            }
             $formattedIssue = [
                 'cve' => basename($advisory['url']),
                 'severity' => coloredOutput($advisory['severity'], [
@@ -237,19 +239,25 @@ function coloredOutput(string $string, array $matches, ?string $match = null): s
  * The function checks for cached security issues and removes them from the list of issues if found.
  *
  * @param array $issues An array of issues to be checked for caching.
- * @param string$ type The type parameter is a string that specifies the type of security check being
+ * @param string $type $ type The type parameter is a string that specifies the type of security check being
  * performed. It is used to generate a unique cache file name for each type of security check.
  *
  * @return void Nothing is being returned, as the function has a return type of `void`.
  */
 function checkIssueCache(array &$issues, string $type): void
 {
-    if (!get('security_use_cache')) return;
+    if (!get('security_use_cache')) {
+        return;
+    }
     $issuesCopy = $issues;
     $cacheFolder = __DIR__ . '/.cache/';
     $cacheFile = "$type.security_check.cache.json";
     $cacheFilePath = $cacheFolder . $cacheFile;
-    if (!is_dir($cacheFolder)) mkdir($cacheFolder, 0755, true);
+    if (!is_dir($cacheFolder)) {
+        if (!mkdir($cacheFolder, 0755, true) && !is_dir($cacheFolder)) {
+            throw new \RuntimeException(sprintf('Directory "%s" was not created', $cacheFolder));
+        }
+    }
     if (file_exists($cacheFilePath)) {
         $cacheFileContent = file_get_contents($cacheFilePath);
         $cacheFileContent = $cacheFileContent ? json_decode($cacheFileContent, true) : [];
@@ -272,20 +280,27 @@ function checkIssueCache(array &$issues, string $type): void
  * It has a default value of "SECURITY_CONTEXT_COMPOSER" and can be overridden with a different value.
  *
  * @return void nothing (void) if the `` array is empty.
+ * @throws GracefulShutdownException
  */
 function notifyIssues(array $issues, string $type = SECURITY_CONTEXT_COMPOSER): void
 {
-    if (empty($issues)) return;
-    $message = 'Im Projekt <strong>' . get('project') . '</strong> wurden die folgende(n) ' . count($issues) . ' <em>' . $type . '</em> Sicherheitslücke(n) entdeckt:';
+    if (empty($issues)) {
+        return;
+    }
+    $message = sprintf(
+        "Im Projekt **%s** wurden die folgende(n) %d _%s_ Sicherheitslücke(n) entdeckt:\n\n",
+        get('project'),
+        count($issues),
+        $type
+    );
     foreach ($issues as $cve => $issue) {
         $message .= sprintf(
-            '<br/><br/><strong style="color:%s">%s</strong> %s<br/><em>%s</em> – <a href="%s">%s</a>',
-            get('security_notification_color'),
+            "**%s** %s\n_%s_ – [%s](%s)\n\n",
             $issue['package'],
             $issue['version'],
             $issue['title'],
-            $issue['link'],
             $cve,
+            $issue['link']
         );
     }
     sendMessage($message, get('security_notification_color'));
