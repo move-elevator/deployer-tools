@@ -225,7 +225,7 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
                         new GetMysqlUserRequest($mysqlUserId)
                     );
 
-                if ($response->getBody()->getStatus() === DatabaseUserStatus::ready) {
+                if (DatabaseUserStatus::ready === $response->getBody()->getStatus()) {
                     debug("MySQL user {$mysqlUserId} is ready.");
                     return true;
                 }
