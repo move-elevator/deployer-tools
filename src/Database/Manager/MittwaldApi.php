@@ -2,19 +2,16 @@
 
 namespace MoveElevator\DeployerTools\Database\Manager;
 
+use Deployer\Exception\Exception;
 use GuzzleHttp\Exception\GuzzleException;
-use Mittwald\ApiClient\Client\EmptyResponse;
 use Mittwald\ApiClient\Error\UnexpectedResponseException;
-use Mittwald\ApiClient\Generated\V2\Clients\Database\CreateMysqlDatabase\CreateMysqlDatabaseCreatedResponse;
 use Mittwald\ApiClient\Generated\V2\Clients\Database\DeleteMysqlDatabase\DeleteMysqlDatabaseRequest;
-use Mittwald\ApiClient\Generated\V2\Clients\Database\GetMysqlDatabase\GetMysqlDatabaseOKResponse;
-use Mittwald\ApiClient\Generated\V2\Clients\Database\GetMysqlUser\GetMysqlUserOKResponse;
 use Mittwald\ApiClient\Generated\V2\Clients\Database\GetMysqlUser\GetMysqlUserRequest;
 use Mittwald\ApiClient\Generated\V2\Schemas\Database\CharacterSettings;
+use Mittwald\ApiClient\Generated\V2\Schemas\Database\DatabaseUserStatus;
 use Mittwald\ApiClient\Generated\V2\Schemas\Database\MySqlUser;
 use Mittwald\ApiClient\MittwaldAPIV2Client;
 use Mittwald\ApiClient\Generated\V2\Clients\Database\ListMysqlDatabases\ListMysqlDatabasesRequest;
-use Mittwald\ApiClient\Generated\V2\Clients\Database\ListMysqlDatabases\ListMysqlDatabasesOKResponse;
 use Mittwald\ApiClient\Generated\V2\Schemas\Database\CreateMySqlDatabase;
 use Mittwald\ApiClient\Generated\V2\Schemas\Database\CreateMySqlUserWithDatabase;
 use Mittwald\ApiClient\Generated\V2\Schemas\Database\CreateMySqlUserWithDatabaseAccessLevel;
@@ -42,6 +39,11 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
 {
     private MittwaldAPIV2Client $client;
 
+    /**
+     * @throws GuzzleException
+     * @throws UnexpectedResponseException
+     * @throws \Exception
+     */
     public function create(): void
     {
         debug('Creating database');
@@ -69,8 +71,14 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
                 )
             );
 
-
         $responseBody = $response->getBody();
+
+        // The database creation is not immediately available, we need to wait for it.
+        $ready = $this->checkForDatabaseReadyStatus($responseBody->getUserId());
+        if (!$ready) {
+            throw new \RuntimeException('Database is not ready for feature ' . $this->getFeatureName() . ' after waiting period.');
+        }
+
         $database = $this->getDatabase($responseBody->getId());
         $user = $this->getDatabaseUser($responseBody->getUserId());
 
@@ -99,6 +107,10 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
 
     }
 
+    /**
+     * @throws GuzzleException
+     * @throws UnexpectedResponseException
+     */
     public function exists(?string $feature = null): bool
     {
         debug('Check database exists');
@@ -131,6 +143,10 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
         return $this->client;
     }
 
+    /**
+     * @throws GuzzleException
+     * @throws UnexpectedResponseException
+     */
     private function getDatabaseByFeature(string $feature): ?MySqlDatabase
     {
         $response = $this->initClient()
@@ -150,6 +166,10 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
         return null;
     }
 
+    /**
+     * @throws GuzzleException
+     * @throws UnexpectedResponseException
+     */
     private function getDatabase(string $id): MySqlDatabase
     {
         $response = $this->initClient()
@@ -164,6 +184,10 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
         return $response->getBody();
     }
 
+    /**
+     * @throws GuzzleException
+     * @throws UnexpectedResponseException
+     */
     private function getDatabaseUser(string $id): MysqlUser
     {
         $response = $this->initClient()
@@ -183,5 +207,35 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
         set('database_name', $database->getName());
         set('database_host', $database->getHostName());
         set('database_password', VarUtility::getDatabasePassword());
+    }
+
+    private function checkForDatabaseReadyStatus(string $mysqlUserId, int $waitingTime = 60, int $maxRetries = 10): bool
+    {
+
+        while ($maxRetries > 0) {
+            try {
+                debug("Checking status for MySQL user {$mysqlUserId}, remaining attempts: {$maxRetries}");
+                $response = $this->initClient()
+                    ->database()
+                    ->getMysqlUser(
+                        new GetMysqlUserRequest($mysqlUserId)
+                    );
+
+                if (DatabaseUserStatus::ready === $response->getBody()->getStatus()) {
+                    debug("MySQL user {$mysqlUserId} is ready.");
+                    return true;
+                }
+            } catch (\Throwable $e) {
+                debug("Error while checking status: " . $e->getMessage());
+                // Optionally: break on certain errors
+            }
+
+            if ($maxRetries > 1) {
+                sleep($waitingTime);
+            }
+            $maxRetries--;
+        }
+        debug("MySQL user {$mysqlUserId} is not ready after all attempts.");
+        return false;
     }
 }
