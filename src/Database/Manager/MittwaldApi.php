@@ -201,10 +201,6 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
         return $response->getBody();
     }
 
-    /**
-     * @throws Exception
-     * @throws \Exception
-     */
     private function initDatabaseConfiguration(MySqlDatabase $database, MySqlUser $user): void
     {
         set('database_user', $user->getName());
@@ -234,7 +230,9 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
                 // Optionally: break on certain errors
             }
 
-            sleep($waitingTime);
+            if ($maxRetries > 1) {
+                sleep($waitingTime);
+            }
             $maxRetries--;
         }
         debug("MySQL user {$mysqlUserId} is not ready after all attempts.");
