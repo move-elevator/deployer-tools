@@ -7,6 +7,7 @@
 		"debug",
 		"Deployer\\askHiddenResponse",
 		"Deployer\\debug",
+		"Deployer\\info",
 		"Deployer\\get",
 		"Deployer\\has",
 		"Deployer\\input",
