@@ -22,6 +22,7 @@ use Mittwald\ApiClient\Generated\V2\Clients\Database\GetMysqlDatabase\GetMysqlDa
 use MoveElevator\DeployerTools\Utility\VarUtility;
 
 use function Deployer\debug;
+use function Deployer\info;
 use function Deployer\get;
 use function Deployer\set;
 use function Deployer\has;
@@ -214,7 +215,7 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
 
         while ($maxRetries > 0) {
             try {
-                debug("Checking status for MySQL user {$mysqlUserId}, remaining attempts: {$maxRetries}");
+                info("Checking status for MySQL user {$mysqlUserId}, remaining attempts: {$maxRetries}");
                 $response = $this->initClient()
                     ->database()
                     ->getMysqlUser(
@@ -222,7 +223,7 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
                     );
 
                 if (DatabaseUserStatus::ready === $response->getBody()->getStatus()) {
-                    debug("MySQL user {$mysqlUserId} is ready.");
+                    info("MySQL user {$mysqlUserId} is ready.");
                     return true;
                 }
             } catch (\Throwable $e) {
