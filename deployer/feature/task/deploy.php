@@ -13,6 +13,8 @@ before('deploy:setup', 'feature:setup');
 before('feature:notify', 'feature:init');
 before('deploy:success', 'feature:notify');
 after('deploy:clear_paths', 'feature:sync');
+before('feature:sync', 'feature:wait_for_database');
+before('deploy:database:update', 'feature:wait_for_database');
 after('deploy:symlink', 'feature:urlshortener');
 before('feature:sync', 'feature:init');
 before('debug:db', 'feature:init');

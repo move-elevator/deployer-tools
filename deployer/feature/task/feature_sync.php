@@ -53,6 +53,16 @@ function waitForDatabaseHost(): void
 }
 
 
+task('feature:wait_for_database', function () {
+    if ((has('feature_setup') && !get('feature_setup')) || !input()->getOption('feature')) return;
+    waitForDatabaseHost();
+})
+    ->select('type=feature-branch-deployment')
+    ->once()
+    ->desc('Wait for database host to be reachable')
+;
+
+
 task('feature:sync', function () {
 
     if ((has('feature_setup') && !get('feature_setup')) || !input()->getOption('feature')) return;
@@ -60,8 +70,6 @@ task('feature:sync', function () {
     $feature = initFeature();
     $synced = false;
     $optionalVerbose = isVerbose() ? '-v' : '';
-
-    waitForDatabaseHost();
 
     /*
      * db_sync_tool
