@@ -75,12 +75,29 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
         $responseBody = $response->getBody();
 
         // The database creation is not immediately available, we need to wait for it.
-        $ready = $this->checkForDatabaseReadyStatus($responseBody->getUserId());
+        $ready = $this->checkForDatabaseReadyStatus(
+            $responseBody->getUserId(),
+            (int) get('mittwald_database_wait', 30),
+            (int) get('mittwald_database_retries', 20),
+        );
         if (!$ready) {
             throw new \RuntimeException('Database is not ready for feature ' . $this->getFeatureName() . ' after waiting period.');
         }
 
         $database = $this->getDatabase($responseBody->getId());
+
+        $reachable = $this->checkDatabaseHostReachable(
+            $database->getHostName(),
+            (int) get('mittwald_database_wait', 30),
+            (int) get('mittwald_database_retries', 20),
+        );
+        if (!$reachable) {
+            throw new \RuntimeException(
+                'Database host ' . $database->getHostName() . ' is not reachable for feature '
+                . $this->getFeatureName() . ' after waiting period.'
+            );
+        }
+
         $user = $this->getDatabaseUser($responseBody->getUserId());
 
         $this->initDatabaseConfiguration($database, $user);
@@ -210,7 +227,30 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
         set('database_password', VarUtility::getDatabasePassword());
     }
 
-    private function checkForDatabaseReadyStatus(string $mysqlUserId, int $waitingTime = 60, int $maxRetries = 10): bool
+    private function checkDatabaseHostReachable(string $hostname, int $waitingTime, int $maxRetries): bool
+    {
+        while ($maxRetries > 0) {
+            try {
+                info("Checking DNS resolution for database host {$hostname}, remaining attempts: {$maxRetries}");
+                $result = run("php -r \"echo checkdnsrr(" . escapeshellarg($hostname) . ", 'A') ? '1' : '';\"");
+                if (trim($result) === '1') {
+                    info("Database host {$hostname} is reachable.");
+                    return true;
+                }
+            } catch (\Throwable $e) {
+                debug("DNS resolution check failed: " . $e->getMessage());
+            }
+
+            if ($maxRetries > 1) {
+                sleep($waitingTime);
+            }
+            $maxRetries--;
+        }
+        debug("Database host {$hostname} is not reachable after all attempts.");
+        return false;
+    }
+
+    private function checkForDatabaseReadyStatus(string $mysqlUserId, int $waitingTime, int $maxRetries): bool
     {
 
         while ($maxRetries > 0) {
