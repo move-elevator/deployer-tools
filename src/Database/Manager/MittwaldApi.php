@@ -229,16 +229,22 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
 
     private function checkDatabaseHostReachable(string $hostname, int $waitingTime, int $maxRetries): bool
     {
+        $port = (int) get('database_port', 3306);
         while ($maxRetries > 0) {
             try {
-                info("Checking DNS resolution for database host {$hostname}, remaining attempts: {$maxRetries}");
-                $result = run("php -r \"echo checkdnsrr(" . escapeshellarg($hostname) . ", 'A') ? '1' : '';\"");
+                info("Checking MySQL connectivity for database host {$hostname}:{$port}, remaining attempts: {$maxRetries}");
+                $check = sprintf(
+                    'echo @fsockopen("%s", %d, $errno, $errstr, 5) ? "1" : "";',
+                    $hostname,
+                    $port
+                );
+                $result = run("php -r " . escapeshellarg($check));
                 if (trim($result) === '1') {
-                    info("Database host {$hostname} is reachable.");
+                    info("Database host {$hostname}:{$port} is reachable.");
                     return true;
                 }
             } catch (\Throwable $e) {
-                debug("DNS resolution check failed: " . $e->getMessage());
+                debug("MySQL connectivity check failed: " . $e->getMessage());
             }
 
             if ($maxRetries > 1) {
@@ -246,7 +252,7 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
             }
             $maxRetries--;
         }
-        debug("Database host {$hostname} is not reachable after all attempts.");
+        debug("Database host {$hostname}:{$port} is not reachable after all attempts.");
         return false;
     }
 
