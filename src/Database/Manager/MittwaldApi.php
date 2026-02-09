@@ -239,7 +239,7 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
                     $port
                 );
                 $result = run("php -r " . escapeshellarg($check));
-                if (trim($result) === '1') {
+                if ('1' === trim($result)) {
                     info("Database host {$hostname}:{$port} is reachable.");
                     return true;
                 }
