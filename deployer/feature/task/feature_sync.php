@@ -9,6 +9,9 @@ require_once('feature_init.php');
  * Verifies that the database host is reachable from the remote server before syncing.
  * This is necessary because DNS for newly created databases (e.g. Mittwald) can be
  * intermittent, and the time between feature:setup and feature:sync may cause DNS flapping.
+ *
+ * After confirming reachability, the hostname is resolved to its IP address and replaced
+ * in the shared .env file to eliminate DNS dependency for all subsequent commands.
  */
 function waitForDatabaseHost(): void
 {
@@ -35,6 +38,7 @@ function waitForDatabaseHost(): void
             $result = run("php -r " . escapeshellarg($check));
             if ('1' === trim($result)) {
                 info("Database host {$hostname}:{$port} is reachable.");
+                resolveDatabaseHostToIp($hostname);
                 return;
             }
         } catch (\Throwable $e) {
@@ -50,6 +54,33 @@ function waitForDatabaseHost(): void
     throw new \RuntimeException(
         "Database host {$hostname}:{$port} is not reachable before sync after all attempts."
     );
+}
+
+/**
+ * Resolves the database hostname to its IP address and replaces it in the shared .env file.
+ * This eliminates DNS dependency for all subsequent remote commands (TYPO3 CLI, etc.),
+ * working around DNS flapping for newly created databases on Mittwald infrastructure.
+ */
+function resolveDatabaseHostToIp(string $hostname): void
+{
+    $resolveCmd = sprintf('echo gethostbyname("%s");', $hostname);
+    $ip = trim(run("php -r " . escapeshellarg($resolveCmd)));
+
+    if ($ip === $hostname) {
+        debug("Could not resolve {$hostname} to IP, skipping .env replacement.");
+        return;
+    }
+
+    $envPath = get('deploy_path') . '/shared/.env';
+    if (!test("[ -f {$envPath} ]")) {
+        debug("No .env file found at {$envPath}, skipping hostname replacement.");
+        return;
+    }
+
+    $escapedHostname = str_replace('.', '\\.', $hostname);
+    run(sprintf("sed -i 's/%s/%s/g' %s", $escapedHostname, $ip, $envPath));
+    set('database_host', $ip);
+    info("Resolved database host {$hostname} to {$ip} in .env");
 }
 
 
