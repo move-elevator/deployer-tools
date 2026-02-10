@@ -74,7 +74,15 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
 
         $responseBody = $response->getBody();
 
-        // The database creation is not immediately available, we need to wait for it.
+        // Mittwald database creation is asynchronous. After the API returns 201, the database
+        // and user are not immediately available. Mittwald support recommends polling the MySQL
+        // user status via GetMysqlUser until it reports "ready" (Mittwald Support, 03.02.2026).
+        //
+        // Additionally, even after the user is "ready", the DNS entry for the database host
+        // (e.g. mysql-xyz.pg-s-xxx.db.project.host) may not be resolvable yet and can flap
+        // intermittently for several minutes. The TCP connectivity check below catches the
+        // initial delay; the DNS-to-IP resolution in feature_sync.php::resolveDatabaseHostToIp()
+        // handles the ongoing flapping by eliminating DNS dependency entirely.
         $ready = $this->checkForDatabaseReadyStatus(
             $responseBody->getUserId(),
             (int) get('mittwald_database_wait', 30),

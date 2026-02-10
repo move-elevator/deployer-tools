@@ -60,6 +60,18 @@ function waitForDatabaseHost(): void
  * Resolves the database hostname to its IP address and replaces it in the shared .env file.
  * This eliminates DNS dependency for all subsequent remote commands (TYPO3 CLI, etc.),
  * working around DNS flapping for newly created databases on Mittwald infrastructure.
+ *
+ * Background: After Mittwald creates a new database, the DNS entry for the host
+ * (e.g. mysql-xyz.pg-s-xxx.db.project.host) is intermittently resolvable for several
+ * minutes - it resolves, then fails, then resolves again. A TCP connectivity check
+ * passing does not guarantee that the next process can resolve the hostname seconds later.
+ * By resolving the hostname to its IP once and writing the IP to .env, all subsequent
+ * commands (db_sync_tool, typo3 database:updateschema, etc.) bypass DNS entirely.
+ *
+ * This workaround can be removed if Mittwald provides a stable DNS propagation status
+ * via their API or resolves the underlying DNS flapping issue.
+ *
+ * @see MittwaldApi::checkDatabaseHostReachable() for the initial TCP connectivity check
  */
 function resolveDatabaseHostToIp(string $hostname): void
 {
