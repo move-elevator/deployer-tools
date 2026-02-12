@@ -21,7 +21,7 @@
 	},
 	"require-dev": {
 		"armin/editorconfig-cli": "^1.0 || ^2.0",
-		"eliashaeussler/rector-config": "^3.0",
+		"eliashaeussler/rector-config": "^4.0",
 		"ergebnis/composer-normalize": "^2.44",
 		"friendsofphp/php-cs-fixer": "^3.52",
 		"phpstan/phpstan": "^2.0",
