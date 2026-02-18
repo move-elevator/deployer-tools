@@ -42,7 +42,7 @@ Checks PHP CLI configuration values against expected minimums:
 
 ### Database client
 
-Checks for the availability of the `mariadb` or `mysql` client and validates the version against the configured minimum (default: >= 10.2.7).
+Checks for the availability of the `mariadb` or `mysql` client and validates the version against client-specific minimums (MariaDB: >= 10.2.7, MySQL: >= 8.0.0).
 
 ### User and permissions
 

@@ -13,10 +13,11 @@ task('requirements:check:user', function (): void {
 
     $expectedGroup = get('requirements_user_group');
 
-    // Check primary group
+    // Check group membership (primary + supplementary)
     try {
+        $groups = explode(' ', trim(run('id -Gn')));
+        $meets = in_array($expectedGroup, $groups, true);
         $actualGroup = trim(run('id -gn'));
-        $meets = ($actualGroup === $expectedGroup);
         addRequirementRow(
             'User group',
             $meets ? REQUIREMENT_OK : REQUIREMENT_WARN,

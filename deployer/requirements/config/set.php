@@ -78,7 +78,8 @@ set('requirements_php_settings', [
 ]);
 
 // Database
-set('requirements_db_min_version', '10.2.7');
+set('requirements_mariadb_min_version', '10.2.7');
+set('requirements_mysql_min_version', '8.0.0');
 
 // User / permissions
 set('requirements_user_group', 'www-data');

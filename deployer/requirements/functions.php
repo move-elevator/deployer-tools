@@ -176,7 +176,8 @@ function getSharedEnvVars(): array
             $value = substr($value, 1, -1);
         }
 
-        $vars[trim($parts[0])] = $value;
+        $key = trim(preg_replace('/^export\s+/', '', trim($parts[0])));
+        $vars[$key] = $value;
     }
 
     return $vars;

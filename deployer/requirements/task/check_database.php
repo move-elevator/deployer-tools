@@ -35,13 +35,21 @@ task('requirements:check:database', function (): void {
         return;
     }
 
-    $minVersion = get('requirements_db_min_version');
-
-    if (preg_match('/Distrib\s+([\d.]+)/', $versionOutput, $matches)
-        || preg_match('/Ver\s+([\d.]+)/', $versionOutput, $matches)) {
+    if (preg_match('/Distrib\s+([\d.]+)/', $versionOutput, $matches)) {
         $actualVersion = $matches[1];
+        $minVersion = get('requirements_mariadb_min_version');
         $meets = version_compare($actualVersion, $minVersion, '>=');
-        $info = $meets ? $actualVersion : "$actualVersion (required: >= $minVersion)";
+        $info = $meets ? "MariaDB $actualVersion" : "MariaDB $actualVersion (required: >= $minVersion)";
+        addRequirementRow(
+            'Database client',
+            $meets ? REQUIREMENT_OK : REQUIREMENT_FAIL,
+            $info
+        );
+    } elseif (preg_match('/Ver\s+([\d.]+)/', $versionOutput, $matches)) {
+        $actualVersion = $matches[1];
+        $minVersion = get('requirements_mysql_min_version');
+        $meets = version_compare($actualVersion, $minVersion, '>=');
+        $info = $meets ? "MySQL $actualVersion" : "MySQL $actualVersion (required: >= $minVersion)";
         addRequirementRow(
             'Database client',
             $meets ? REQUIREMENT_OK : REQUIREMENT_FAIL,
