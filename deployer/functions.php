@@ -129,3 +129,50 @@ function cleanUpDatabaseCacheDumps(int $days = 7): void
     // cleanup beforehand: delete all dump files with the above naming scheme older than 7 days
     run("find $dbDumpDir -name '*.sql' -mtime +$days -delete");
 }
+
+/**
+ * Applies standardized file and directory permissions for a deployment.
+ *
+ * Handles:
+ * - var/cache creation and writable permissions
+ * - SGID-aware directory permissions for group inheritance
+ * - Restrictive file permissions
+ * - Shared directory baseline and writable permissions
+ *
+ * Config keys (with defaults):
+ * - writable_chmod_mode_files: '644'
+ * - writable_chmod_mode_dirs: '2755'
+ * - writable_chmod_mode_writable_dirs: '2775'
+ */
+function applyDeployPermissions(): void
+{
+    $modeFiles = has('writable_chmod_mode_files') ? get('writable_chmod_mode_files') : '644';
+    $modeDirs = has('writable_chmod_mode_dirs') ? get('writable_chmod_mode_dirs') : '2755';
+    $modeWritableDirs = has('writable_chmod_mode_writable_dirs') ? get('writable_chmod_mode_writable_dirs') : '2775';
+
+    // Ensure var/cache exists before any cache operation
+    runExtended("cd {{ release_path }} && mkdir -p var/cache");
+
+    // Set SGID + writable permissions on var directories
+    runExtended("cd {{ release_path }} && chmod $modeWritableDirs var var/cache");
+
+    // Set proper directory permissions with SGID for group inheritance, skip var
+    runExtended("cd {{ release_path }} && find . -path \"./var\" -prune -o -type d -exec chmod $modeDirs {} +");
+
+    // Set restrictive file permissions
+    runExtended("cd {{ release_path }} && find . -type f -exec chmod $modeFiles {} +");
+
+    // var/cache needs recursive writable permissions for webserver access
+    runExtended("cd {{ release_path }} && chmod -R $modeWritableDirs var/cache");
+
+    // Fix shared directory permissions (baseline)
+    runExtended("cd {{ deploy_path }}/shared && find . -type d -exec chmod $modeDirs {} +");
+    runExtended("cd {{ deploy_path }}/shared && find . -type f -exec chmod $modeFiles {} +");
+
+    // Shared writable directories need broader permissions (recursive for subdirectories)
+    foreach (get('shared_dirs') as $dir) {
+        if (test("[ -d {{ deploy_path }}/shared/$dir ]")) {
+            runExtended("find {{ deploy_path }}/shared/$dir -type d -exec chmod $modeWritableDirs {} +");
+        }
+    }
+}
