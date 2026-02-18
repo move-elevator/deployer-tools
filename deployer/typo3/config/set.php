@@ -31,6 +31,9 @@ set('shared_files', [
 set('writable_mode', 'chmod');
 set('writable_chmod_mode', '2770');
 set('writable_recursive', false);
+set('writable_chmod_mode_files', '644');
+set('writable_chmod_mode_dirs', '2755');
+set('writable_chmod_mode_writable_dirs', '2775');
 set('writable_dirs',  [
     '{{web_path}}typo3conf',
     '{{web_path}}typo3temp',
