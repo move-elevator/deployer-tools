@@ -9,6 +9,7 @@ The feature branch deployment describes the deployment and initialization proces
 + [Synchronization](#synchronization)
 + [Information](#information)
 + [Pathing](#pathing)
++ [Scheduler](#scheduler)
 + [Cleanup](#cleanup)
 + [Further more](#further-more)
 + [FAQ](#faq)
@@ -208,6 +209,33 @@ The folder structure on the server will look like this:
 ```
 
 So the resulting url will look like: `https://test.local/app`.
+
+### Scheduler
+
+The `feature:scheduler` command uploads a standalone bash script to the target server, which runs the TYPO3 scheduler for all active feature branch instances. This is useful for executing periodic tasks (e.g. search indexing, mail queue processing) across all feature branches.
+
+```bash
+$ vendor/bin/dep feature:scheduler stage
+```
+
+The script is uploaded to the `.fbd/` directory on the target server:
+
+```bash
+├── .fbd/
+│   ├── scheduler.sh
+│   ├── scheduler.log
+│   └── ...
+```
+
+On the target server, add a crontab entry to run the scheduler periodically:
+
+```bash
+*/5 * * * * /var/www/html/.fbd/scheduler.sh >> /var/www/html/.fbd/scheduler.log 2>&1
+```
+
+The script requires no additional dependencies on the target system beyond what is already present for running TYPO3 (bash, PHP CLI). The paths for the PHP binary and the TYPO3 CLI are resolved from the deployer configuration (`bin/php`, `bin/typo3cms`) during upload.
+
+The script automatically discovers all feature branch instances, skips instances without a current release and continues execution if the scheduler fails for a single instance.
 
 ### Cleanup
 

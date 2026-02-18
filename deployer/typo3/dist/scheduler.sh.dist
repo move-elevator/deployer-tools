@@ -1,0 +1,49 @@
+#!/bin/bash
+#
+# TYPO3 Scheduler Runner for Feature Branch Deployment
+# Runs the TYPO3 scheduler for all active feature branch instances.
+#
+# Crontab example:
+#   */5 * * * * {{SCHEDULER_PATH}} >> {{LOG_PATH}} 2>&1
+#
+
+set -o pipefail
+
+INSTANCES_DIR="{{INSTANCES_DIR}}"
+TYPO3_BIN="{{TYPO3_BIN}}"
+PHP_BIN="{{PHP_BIN}}"
+
+# validate template substitution
+if [[ "$INSTANCES_DIR" == *"{{"* ]] || [[ "$TYPO3_BIN" == *"{{"* ]] || [[ "$PHP_BIN" == *"{{"* ]]; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: Template substitution failed — unreplaced placeholders detected" >&2
+    exit 1
+fi
+
+executed=0
+failed=0
+
+for instance_dir in "$INSTANCES_DIR"/*/; do
+    [ -d "$instance_dir" ] || continue
+
+    # skip hidden directories (e.g. .fbd)
+    instance_name=$(basename "$instance_dir")
+    [[ "$instance_name" == .* ]] && continue
+
+    current_dir="${instance_dir}current"
+    [ -d "$current_dir" ] || continue
+
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Running scheduler for: $instance_name"
+
+    (cd "$current_dir" && "$PHP_BIN" "$TYPO3_BIN" scheduler:run 2>&1)
+    exit_code=$?
+
+    if [[ $exit_code -eq 0 ]]; then
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] OK: Scheduler completed for: $instance_name"
+        executed=$((executed + 1))
+    else
+        echo "[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: Scheduler failed for $instance_name (exit code: $exit_code)"
+        failed=$((failed + 1))
+    fi
+done
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Scheduler completed: $executed succeeded, $failed failed"
