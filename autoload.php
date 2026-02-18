@@ -36,6 +36,20 @@ require_once(__DIR__ . '/deployer/security/config/options.php');
 require_once(__DIR__ . '/deployer/security/task/security.php');
 
 /*
+ * requirements
+ */
+require_once(__DIR__ . '/deployer/requirements/functions.php');
+require_once(__DIR__ . '/deployer/requirements/config/set.php');
+require_once(__DIR__ . '/deployer/requirements/task/requirements.php');
+require_once(__DIR__ . '/deployer/requirements/task/check_locales.php');
+require_once(__DIR__ . '/deployer/requirements/task/check_packages.php');
+require_once(__DIR__ . '/deployer/requirements/task/check_php_extensions.php');
+require_once(__DIR__ . '/deployer/requirements/task/check_php_settings.php');
+require_once(__DIR__ . '/deployer/requirements/task/check_database.php');
+require_once(__DIR__ . '/deployer/requirements/task/check_user.php');
+require_once(__DIR__ . '/deployer/requirements/task/check_env.php');
+
+/*
  * dev
  */
 require_once(__DIR__ . '/deployer/dev/functions.php');
