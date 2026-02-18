@@ -3,7 +3,6 @@
 namespace MoveElevator\DeployerTools\Database;
 
 use MoveElevator\DeployerTools\Database\Exception\DatabaseException;
-use MoveElevator\DeployerTools\Database\Manager\Api;
 use MoveElevator\DeployerTools\Database\Manager\ManagerInterface;
 use MoveElevator\DeployerTools\Database\Manager\MittwaldApi;
 use MoveElevator\DeployerTools\Database\Manager\Root;
@@ -18,15 +17,12 @@ class DbUtility
 {
     public const DATABASE_MANAGEMENT_TYPE_ROOT = 'root';
     public const DATABASE_MANAGEMENT_TYPE_SIMPLE = 'simple';
-    public const DATABASE_MANAGEMENT_TYPE_API = 'api';
-
     public const DATABASE_MANAGEMENT_TYPE_MITTWALD_API = 'mittwald_api';
 
     protected static array $databaseManagers = [
         'default' => Root::class,
         self::DATABASE_MANAGEMENT_TYPE_ROOT => Root::class,
         self::DATABASE_MANAGEMENT_TYPE_SIMPLE => Simple::class,
-        self::DATABASE_MANAGEMENT_TYPE_API => Api::class,
         self::DATABASE_MANAGEMENT_TYPE_MITTWALD_API => MittwaldApi::class,
     ];
 
