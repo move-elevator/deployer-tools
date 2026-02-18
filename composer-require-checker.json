@@ -2,6 +2,7 @@
 	"symbol-whitelist": [
 		"Normalizer",
 		"after",
+		"applyDeployPermissions",
 		"askConfirmation",
 		"before",
 		"checkVerbosity",
@@ -14,6 +15,7 @@
 		"Deployer\\has",
 		"Deployer\\input",
 		"Deployer\\run",
+		"Deployer\\applyDeployPermissions",
 		"Deployer\\runExtended",
 		"Deployer\\set",
 		"Deployer\\test",

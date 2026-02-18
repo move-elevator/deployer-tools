@@ -14,6 +14,7 @@ require_once($vendorRoot . '/vendor/move-elevator/deployer-tools/autoload.php');
 
 require_once($vendorRoot . '/vendor/move-elevator/deployer-tools/deployer/typo3/functions.php');
 require_once($vendorRoot . '/vendor/move-elevator/deployer-tools/deployer/typo3/config/set.php');
+require_once($vendorRoot . '/vendor/move-elevator/deployer-tools/deployer/typo3/task/deploy_writable_chmod.php');
 require_once($vendorRoot . '/vendor/move-elevator/deployer-tools/deployer/typo3/task/deploy.php');
 require_once($vendorRoot . '/vendor/move-elevator/deployer-tools/deployer/typo3/task/deploy_cache.php');
 require_once($vendorRoot . '/vendor/move-elevator/deployer-tools/deployer/typo3/task/deploy_database.php');

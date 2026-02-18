@@ -27,6 +27,9 @@ task('deploy', [
     // Standard deployer task.
     'deploy:writable',
 
+    // Adjust file and directory permissions (SGID, CLI binary, shared dirs).
+    'deploy:writable:chmod',
+
     // Standard deployer task.
     'deploy:clear_paths',
 

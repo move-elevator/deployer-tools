@@ -30,8 +30,11 @@ set('writable_dirs', [
 ]);
 
 set('writable_mode', 'chmod');
-set('writable_chmod_mode', '0770'); // todo maybe change to '2770'
-set('writable_chmod_recursive', false);
+set('writable_chmod_mode', '2770');
+set('writable_recursive', false);
+set('writable_chmod_mode_files', '644');
+set('writable_chmod_mode_dirs', '2755');
+set('writable_chmod_mode_writable_dirs', '2775');
 
 set('bin/console', function () {
     $activePath = get('deploy_path') . '/' . (test('[ -L {{deploy_path}}/release ]') ? 'release' : 'current');
