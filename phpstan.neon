@@ -5,3 +5,6 @@ parameters:
 	bootstrapFiles:
 		- vendor/deployer/deployer/src/functions.php
 		- deployer/functions.php
+	excludePaths:
+		analyseAndScan:
+			- src/Database/Manager/MittwaldApi.php

@@ -23,6 +23,22 @@
 		"set",
 		"task",
 		"test",
-		"has"
+		"has",
+		"GuzzleHttp\\Exception\\GuzzleException",
+		"Mittwald\\ApiClient\\Error\\UnexpectedResponseException",
+		"Mittwald\\ApiClient\\Generated\\V2\\Clients\\Database\\CreateMysqlDatabase\\CreateMysqlDatabaseRequest",
+		"Mittwald\\ApiClient\\Generated\\V2\\Clients\\Database\\CreateMysqlDatabase\\CreateMysqlDatabaseRequestBody",
+		"Mittwald\\ApiClient\\Generated\\V2\\Clients\\Database\\DeleteMysqlDatabase\\DeleteMysqlDatabaseRequest",
+		"Mittwald\\ApiClient\\Generated\\V2\\Clients\\Database\\GetMysqlDatabase\\GetMysqlDatabaseRequest",
+		"Mittwald\\ApiClient\\Generated\\V2\\Clients\\Database\\GetMysqlUser\\GetMysqlUserRequest",
+		"Mittwald\\ApiClient\\Generated\\V2\\Clients\\Database\\ListMysqlDatabases\\ListMysqlDatabasesRequest",
+		"Mittwald\\ApiClient\\Generated\\V2\\Schemas\\Database\\CharacterSettings",
+		"Mittwald\\ApiClient\\Generated\\V2\\Schemas\\Database\\CreateMySqlDatabase",
+		"Mittwald\\ApiClient\\Generated\\V2\\Schemas\\Database\\CreateMySqlUserWithDatabase",
+		"Mittwald\\ApiClient\\Generated\\V2\\Schemas\\Database\\CreateMySqlUserWithDatabaseAccessLevel",
+		"Mittwald\\ApiClient\\Generated\\V2\\Schemas\\Database\\DatabaseUserStatus",
+		"Mittwald\\ApiClient\\Generated\\V2\\Schemas\\Database\\MySqlDatabase",
+		"Mittwald\\ApiClient\\Generated\\V2\\Schemas\\Database\\MySqlUser",
+		"Mittwald\\ApiClient\\MittwaldAPIV2Client"
 	]
 }
