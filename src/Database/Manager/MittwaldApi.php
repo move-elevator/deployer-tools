@@ -258,7 +258,7 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
             $resolveCmd = sprintf('echo gethostbyname("%s");', addslashes($hostname));
             $ip = trim(run("php -r " . escapeshellarg($resolveCmd)));
 
-            if ($ip !== $hostname && filter_var($ip, FILTER_VALIDATE_IP)) {
+            if ($ip !== $hostname) {
                 info("Resolved database host {$hostname} to {$ip}");
                 return $ip;
             }
