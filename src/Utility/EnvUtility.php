@@ -34,6 +34,9 @@ class EnvUtility
                 continue;
             }
             $result = explode('=', $line, 2);
+            if (count($result) < 2) {
+                continue;
+            }
             $vars[trim($result[0])] = str_replace('\'', '', trim($result[1]));
         }
 
