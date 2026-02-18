@@ -83,8 +83,8 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
         // Additionally, even after the user is "ready", the DNS entry for the database host
         // (e.g. mysql-xyz.pg-s-xxx.db.project.host) may not be resolvable yet and can flap
         // intermittently for several minutes. The TCP connectivity check below catches the
-        // initial delay; the DNS-to-IP resolution in feature_sync.php::resolveDatabaseHostToIp()
-        // handles the ongoing flapping by eliminating DNS dependency entirely.
+        // initial delay, and the immediate hostname-to-IP resolution eliminates DNS dependency
+        // for all subsequent operations (template rendering, db_sync_tool, TYPO3 CLI, etc.).
         $ready = $this->checkForDatabaseReadyStatus(
             $responseBody->getUserId(),
             (int) get('mittwald_database_wait', 30),
@@ -108,9 +108,15 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
             );
         }
 
+        // Resolve hostname to IP immediately while DNS is known to be working.
+        // Mittwald DNS entries flap intermittently for several minutes after database creation.
+        // By resolving now, the .env template will contain the IP address, eliminating DNS
+        // dependency for db_sync_tool, TYPO3 CLI, and all subsequent remote commands.
+        $databaseHost = $this->resolveHostnameToIp($database->getHostName());
+
         $user = $this->getDatabaseUser($responseBody->getUserId());
 
-        $this->initDatabaseConfiguration($database, $user);
+        $this->initDatabaseConfiguration($database, $user, $databaseHost);
     }
 
     /**
@@ -229,12 +235,39 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
         return $response->getBody();
     }
 
-    private function initDatabaseConfiguration(MySqlDatabase $database, MySqlUser $user): void
+    private function initDatabaseConfiguration(MySqlDatabase $database, MySqlUser $user, string $databaseHost): void
     {
         set('database_user', $user->getName());
         set('database_name', $database->getName());
-        set('database_host', $database->getHostName());
+        set('database_host', $databaseHost);
         set('database_password', VarUtility::getDatabasePassword());
+    }
+
+    /**
+     * Resolves a database hostname to its IP address on the remote server.
+     *
+     * This is called immediately after the TCP connectivity check passes, when DNS is
+     * known to be working. The resolved IP is used in the .env template instead of the
+     * hostname, bypassing Mittwald's intermittent DNS flapping for all subsequent commands.
+     *
+     * Falls back to the original hostname if resolution fails.
+     */
+    private function resolveHostnameToIp(string $hostname): string
+    {
+        try {
+            $resolveCmd = sprintf('echo gethostbyname("%s");', addslashes($hostname));
+            $ip = trim(run("php -r " . escapeshellarg($resolveCmd)));
+
+            if ($ip !== $hostname) {
+                info("Resolved database host {$hostname} to {$ip}");
+                return $ip;
+            }
+        } catch (\Throwable $e) {
+            debug("Could not resolve {$hostname} to IP: " . $e->getMessage());
+        }
+
+        debug("Could not resolve {$hostname} to IP, using hostname as fallback.");
+        return $hostname;
     }
 
     private function checkDatabaseHostReachable(string $hostname, int $waitingTime, int $maxRetries): bool
