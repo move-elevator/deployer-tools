@@ -2,7 +2,9 @@
 	"symbol-whitelist": [
 		"Normalizer",
 		"after",
+		"askConfirmation",
 		"before",
+		"checkVerbosity",
 		"commandSupportSubcommand",
 		"debug",
 		"Deployer\\askHiddenResponse",
@@ -17,12 +19,15 @@
 		"Deployer\\test",
 		"Deployer\\upload",
 		"get",
+		"has",
+		"info",
+		"isUrlShortener",
 		"parse",
 		"runExtended",
 		"runLocally",
 		"set",
 		"task",
 		"test",
-		"has"
+		"uploadTemplate"
 	]
 }
