@@ -162,8 +162,21 @@ function applyDeployPermissions(): void
     // Set restrictive file permissions
     runExtended("cd {{ release_path }} && find . -type f -exec chmod $modeFiles {} +");
 
-    // var/cache needs recursive writable permissions for webserver access
-    runExtended("cd {{ release_path }} && chmod -R $modeWritableDirs var/cache");
+    // var/cache directories need recursive SGID+writable permissions; files need group-writable
+    runExtended("cd {{ release_path }} && find var/cache -type d -exec chmod $modeWritableDirs {} +");
+    runExtended("cd {{ release_path }} && find var/cache -type f -exec chmod 664 {} +");
+
+    // Restore writable permissions on release-path-only writable dirs (not shared, not var)
+    $sharedDirs = has('shared_dirs') ? get('shared_dirs') : [];
+    foreach (has('writable_dirs') ? get('writable_dirs') : [] as $dir) {
+        if (str_starts_with($dir, 'var') || in_array($dir, $sharedDirs)) {
+            continue;
+        }
+        if (test("[ -d {{ release_path }}/$dir ]")) {
+            runExtended("find {{ release_path }}/$dir -type d -exec chmod $modeWritableDirs {} +");
+            runExtended("find {{ release_path }}/$dir -type f -exec chmod 664 {} +");
+        }
+    }
 
     // Fix shared directory permissions (baseline)
     runExtended("cd {{ deploy_path }}/shared && find . -type d -exec chmod $modeDirs {} +");
@@ -173,6 +186,13 @@ function applyDeployPermissions(): void
     foreach (get('shared_dirs') as $dir) {
         if (test("[ -d {{ deploy_path }}/shared/$dir ]")) {
             runExtended("find {{ deploy_path }}/shared/$dir -type d -exec chmod $modeWritableDirs {} +");
+        }
+    }
+
+    // Tighten permissions on shared sensitive files (.env, credentials)
+    foreach (has('shared_files') ? get('shared_files') : [] as $file) {
+        if (test("[ -f {{ deploy_path }}/shared/$file ]")) {
+            runExtended("chmod 640 {{ deploy_path }}/shared/$file");
         }
     }
 }
