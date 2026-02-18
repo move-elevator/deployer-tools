@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MoveElevator\DeployerTools\Database\Manager;
 
 interface ManagerInterface

@@ -57,8 +57,9 @@ The TYPO3 deployment covers the deployment process for TYPO3 CMS applications.
 Read the [documentation](docs/TYPO3.md) for detailed installation instructions and further explanations.
 
 ### Standalone Tasks
-- MS Teams Notification
-- Database backup
+- [MS Teams Notification](deployer/notification/task/ms_teams.php)
+- [Database backup](deployer/sync/task/database_backup.php)
+- [Database management](docs/DATABASE.md)
 - [Security check](docs/SECURITY.md)
 - [Development](docs/DEV.md)
 - [Debug helper](docs/DEBUG.md)

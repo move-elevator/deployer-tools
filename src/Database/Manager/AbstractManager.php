@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MoveElevator\DeployerTools\Database\Manager;
 
 use MoveElevator\DeployerTools\Database\Exception\DatabaseException;
@@ -13,7 +15,7 @@ use function Deployer\test;
 
 abstract class AbstractManager
 {
-    public function run(string $command, $useDoubleQuotes = true): string
+    public function run(string $command, bool $useDoubleQuotes = true): string
     {
         try {
             $databaseUser = get('database_user');
@@ -45,11 +47,7 @@ abstract class AbstractManager
     }
 
 
-    /**
-     * @param string|null $feature
-     * @return array|string|string[]|null
-     */
-    public function getFeatureName(?string $feature = null)
+    public function getFeatureName(?string $feature = null): string
     {
         $feature = $feature ?: input()->getOption('feature');
 

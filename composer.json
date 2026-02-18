@@ -1,7 +1,7 @@
 {
 	"name": "move-elevator/deployer-tools",
 	"description": "The Deployer Tools combine multiple deployer recipes for an improved deployment process and workflow.",
-	"license": "GPL-2.0-or-later",
+	"license": "GPL-3.0-or-later",
 	"type": "library",
 	"authors": [
 		{
@@ -15,9 +15,8 @@
 		"ext-json": "*",
 		"ext-pcre": "*",
 		"deployer/deployer": "^7.0",
-		"mittwald/api-client": "^2.1",
 		"sourcebroker/deployer-extended": "^24.0",
-		"sourcebroker/deployer-loader": "^2.0.1"
+		"sourcebroker/deployer-loader": "^5.0"
 	},
 	"require-dev": {
 		"armin/editorconfig-cli": "^1.0 || ^2.0",
@@ -33,7 +32,6 @@
 	"autoload": {
 		"psr-4": {
 			"MoveElevator\\DeployerTools\\Database\\": "src/Database/",
-			"MoveElevator\\DeployerTools\\Drupal\\": "deployer/drupal/",
 			"MoveElevator\\DeployerTools\\Symfony\\": "deployer/symfony/",
 			"MoveElevator\\DeployerTools\\TYPO3\\": "deployer/typo3/",
 			"MoveElevator\\DeployerTools\\Utility\\": "src/Utility/"

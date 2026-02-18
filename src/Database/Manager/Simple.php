@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MoveElevator\DeployerTools\Database\Manager;
 
 use MoveElevator\DeployerTools\Database\Exception\DatabaseException;

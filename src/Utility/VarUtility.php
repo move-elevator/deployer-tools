@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MoveElevator\DeployerTools\Utility;
 
 use function Deployer\askHiddenResponse;
@@ -41,7 +43,8 @@ class VarUtility
         $databasePassword = has('database_password') ? get('database_password') : getenv('DEPLOYER_CONFIG_DATABASE_PASSWORD');
 
         if (!$databasePassword) {
-            $databasePassword = VarUtility::getDatabaseVarByType();
+            $result = VarUtility::getDatabaseVarByType();
+            $databasePassword = is_string($result) ? $result : false;
         }
 
         if (!$databasePassword) {
