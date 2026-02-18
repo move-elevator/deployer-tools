@@ -35,7 +35,9 @@ task('requirements:check:database', function (): void {
         return;
     }
 
-    if (preg_match('/Distrib\s+([\d.]+)/', $versionOutput, $matches)) {
+    if (preg_match('/Distrib\s+([\d.]+)/', $versionOutput, $matches)
+        || preg_match('/([\d.]+)-MariaDB/', $versionOutput, $matches)
+    ) {
         $actualVersion = $matches[1];
         $minVersion = get('requirements_mariadb_min_version');
         $meets = version_compare($actualVersion, $minVersion, '>=');

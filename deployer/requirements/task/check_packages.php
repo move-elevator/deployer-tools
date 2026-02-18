@@ -17,7 +17,7 @@ task('requirements:check:packages', function (): void {
         }
 
         try {
-            $found = test("which $command 2>/dev/null");
+            $found = test("command -v $command >/dev/null 2>&1");
         } catch (RunException) {
             addRequirementRow("Package: $displayName", REQUIREMENT_SKIP, 'Check failed');
 
