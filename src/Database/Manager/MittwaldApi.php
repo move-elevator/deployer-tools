@@ -245,7 +245,7 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
                 info("Checking MySQL connectivity for database host {$hostname}:{$port}, remaining attempts: {$maxRetries}");
                 $check = sprintf(
                     'echo @fsockopen("%s", %d, $errno, $errstr, 5) ? "1" : "";',
-                    $hostname,
+                    addslashes($hostname),
                     $port
                 );
                 $result = run("php -r " . escapeshellarg($check));
