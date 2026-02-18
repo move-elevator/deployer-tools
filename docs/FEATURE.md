@@ -105,7 +105,7 @@ set('feature_msteams_text', 'Der Branch **[{{feature}}]({{public_url}})** wurde 
 
 This task should be placed right before finishing the deployment task.
 ```php
-before('deploy:success', 'feature:notify';
+before('deploy:success', 'feature:notify');
 ```
 
 > Hint: it is possible to mute the notification by providing the environment variable `DEPLOYER_CONFIG_NOTIFICATION_MUTE`.
@@ -192,7 +192,7 @@ set('feature_url_shortener', true);
 ```
 
 ```php
-after('deploy:symlink', 'feature:urlshortener';
+after('deploy:symlink', 'feature:urlshortener');
 ```
 
 The folder structure on the server will look like this:
