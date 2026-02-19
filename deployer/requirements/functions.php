@@ -353,6 +353,36 @@ function checkEolForProduct(string $label, string $product, string $cycle, int $
 }
 
 /**
+ * Check if a service is active via systemctl, with pgrep fallback.
+ *
+ * Returns the matched service/process name or null if none found.
+ */
+function isServiceActive(string ...$names): ?string
+{
+    $hasSystemctl = test('command -v systemctl > /dev/null 2>&1');
+
+    foreach ($names as $name) {
+        try {
+            if ($hasSystemctl) {
+                $status = trim(run("systemctl is-active $name 2>/dev/null || true"));
+
+                if ($status === 'active') {
+                    return $name;
+                }
+            }
+
+            if (test("pgrep -x $name > /dev/null 2>&1")) {
+                return $name;
+            }
+        } catch (RunException) {
+            continue;
+        }
+    }
+
+    return null;
+}
+
+/**
  * @return array<string, string>
  */
 function getSharedEnvVars(): array
