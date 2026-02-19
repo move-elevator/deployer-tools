@@ -13,6 +13,7 @@ task('requirements:check:image_processing', function (): void {
 
     $gmMinVersion = get('requirements_graphicsmagick_min_version');
     $imMinVersion = get('requirements_imagemagick_min_version');
+    $gmVersionFail = false;
 
     // Try GraphicsMagick first (recommended)
     try {
@@ -27,6 +28,8 @@ task('requirements:check:image_processing', function (): void {
 
                 return;
             }
+
+            $gmVersionFail = "GraphicsMagick $actualVersion (required: >= $gmMinVersion)";
         }
     } catch (RunException) {
         // GraphicsMagick not available, try ImageMagick
@@ -55,6 +58,8 @@ task('requirements:check:image_processing', function (): void {
     addRequirementRow(
         'Image processing',
         REQUIREMENT_FAIL,
-        "Neither GraphicsMagick (>= $gmMinVersion) nor ImageMagick (>= $imMinVersion) found"
+        $gmVersionFail !== false
+            ? "$gmVersionFail — ImageMagick (>= $imMinVersion) not found"
+            : "Neither GraphicsMagick (>= $gmMinVersion) nor ImageMagick (>= $imMinVersion) found"
     );
 })->hidden();

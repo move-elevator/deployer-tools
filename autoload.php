@@ -47,6 +47,7 @@ require_once(__DIR__ . '/deployer/requirements/task/check_image_processing.php')
 require_once(__DIR__ . '/deployer/requirements/task/check_php_extensions.php');
 require_once(__DIR__ . '/deployer/requirements/task/check_php_settings.php');
 require_once(__DIR__ . '/deployer/requirements/task/check_database.php');
+require_once(__DIR__ . '/deployer/requirements/task/check_database_grants.php');
 require_once(__DIR__ . '/deployer/requirements/task/check_user.php');
 require_once(__DIR__ . '/deployer/requirements/task/check_env.php');
 require_once(__DIR__ . '/deployer/requirements/task/check_eol.php');

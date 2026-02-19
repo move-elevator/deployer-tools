@@ -17,6 +17,7 @@ set('requirements_check_database_enabled', true);
 set('requirements_check_user_enabled', true);
 set('requirements_check_env_enabled', true);
 set('requirements_check_eol_enabled', true);
+set('requirements_check_database_grants_enabled', true);
 
 // Locales
 set('requirements_locales', ['de_DE.utf8', 'en_US.utf8']);

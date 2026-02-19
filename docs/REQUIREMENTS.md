@@ -59,6 +59,32 @@ Checks PHP CLI configuration values against expected minimums:
 
 Checks for the availability of the `mariadb` or `mysql` client and validates the version against client-specific minimums (MariaDB: >= 10.4.3, MySQL: >= 8.0.17).
 
+### Database grants
+
+Validates database user permissions based on the configured `database_manager_type`. This check requires the feature deployment autoload to be loaded.
+
+**Root mode** (`default` / `root`): Connects to the database server and verifies that all required grants are set on global level (`*.*`):
+
+```
+SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER,
+CREATE TEMPORARY TABLES, LOCK TABLES, EXECUTE,
+CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE
+```
+
+`ALL PRIVILEGES ON *.*` is also accepted.
+
+**Simple mode** (`simple`): Validates pool configuration and tests connectivity to each pool database.
+
+**Mittwald API** (`mittwald_api`): Skipped (database management is handled via API).
+
+Credential resolution (no interactive prompt):
+
+1. Deployer config (`database_user`, `database_password`)
+2. Environment variable `DEPLOYER_CONFIG_DATABASE_PASSWORD`
+3. Shared `.env` file (TYPO3: `TYPO3_CONF_VARS__DB__Connections__Default__*`, Symfony: `DATABASE_URL`)
+
+If no credentials can be resolved, the check is skipped.
+
 ### User and permissions
 
 Validates that the SSH user belongs to the expected web server group (default: `www-data`) and that the deploy path has the correct owner, group, and permissions (default: `2770`).
@@ -133,6 +159,9 @@ set('requirements_env_vars', ['DATABASE_URL', 'APP_SECRET']);
 set('requirements_check_eol_enabled', true);
 set('requirements_eol_warn_months', 6);   // Warn X months before EOL
 set('requirements_eol_api_timeout', 5);   // API timeout in seconds
+
+// Database grants check
+set('requirements_check_database_grants_enabled', true);
 ```
 
 ## Extending with custom checks

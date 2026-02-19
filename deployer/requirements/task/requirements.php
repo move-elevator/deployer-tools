@@ -11,6 +11,7 @@ task('requirements:check', [
     'requirements:check:php_extensions',
     'requirements:check:php_settings',
     'requirements:check:database',
+    'requirements:check:database_grants',
     'requirements:check:user',
     'requirements:check:env',
     'requirements:check:eol',
