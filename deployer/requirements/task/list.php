@@ -37,6 +37,28 @@ task('requirements:list', function (): void {
         writeln(sprintf('  MySQL:        >= %s', get('requirements_mysql_min_version')));
     }
 
+    // Database Grants
+    if (get('requirements_check_database_grants_enabled')) {
+        $managerType = has('database_manager_type') ? get('database_manager_type') : null;
+
+        if ($managerType !== null) {
+            writeln('');
+            writeln('<fg=yellow;options=bold>Database Grants</>');
+
+            if ($managerType === 'simple') {
+                $poolSize = has('database_pool') ? count(get('database_pool')) : 0;
+                writeln(sprintf('  Mode: Simple (pool with %d database(s))', $poolSize));
+                writeln('  Check: Connectivity per pool entry');
+            } elseif ($managerType === 'mittwald_api') {
+                writeln('  Mode: Mittwald API (managed, no grant check)');
+            } else {
+                writeln('  Mode: Root');
+                writeln('  Required grants on *.*:');
+                writeln('  ' . implode(', ', REQUIREMENT_DATABASE_GRANTS));
+            }
+        }
+    }
+
     // Image Processing
     if (get('requirements_check_image_processing_enabled')) {
         writeln('');
