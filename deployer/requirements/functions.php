@@ -369,7 +369,9 @@ function isServiceActive(string ...$names): ?string
                 if ($status === 'active') {
                     return $name;
                 }
-            } elseif (test("pgrep -x $name > /dev/null 2>&1")) {
+            }
+
+            if (test("pgrep -x $name > /dev/null 2>&1")) {
                 return $name;
             }
         } catch (RunException) {
