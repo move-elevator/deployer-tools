@@ -65,7 +65,7 @@ Validates database user permissions based on the configured `database_manager_ty
 
 **Root mode** (`default` / `root`): Connects to the database server and verifies that all required grants are set on global level (`*.*`):
 
-```
+```sql
 SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER,
 CREATE TEMPORARY TABLES, LOCK TABLES, EXECUTE,
 CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE
