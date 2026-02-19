@@ -21,12 +21,12 @@ task('requirements:check:image_processing', function (): void {
         if ($gmOutput !== '' && preg_match('/GraphicsMagick\s+([\d.]+)/', $gmOutput, $matches)) {
             $actualVersion = $matches[1];
             $meets = version_compare($actualVersion, $gmMinVersion, '>=');
-            $info = $meets
-                ? "GraphicsMagick $actualVersion"
-                : "GraphicsMagick $actualVersion (required: >= $gmMinVersion)";
-            addRequirementRow('Image processing', $meets ? REQUIREMENT_OK : REQUIREMENT_FAIL, $info);
 
-            return;
+            if ($meets) {
+                addRequirementRow('Image processing', REQUIREMENT_OK, "GraphicsMagick $actualVersion");
+
+                return;
+            }
         }
     } catch (RunException) {
         // GraphicsMagick not available, try ImageMagick

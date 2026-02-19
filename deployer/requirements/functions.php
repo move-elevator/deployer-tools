@@ -201,13 +201,16 @@ function detectDatabaseProduct(): ?array
                 continue;
             }
 
-            if (preg_match('/Distrib\s+((\d+\.\d+)[\d.]*)/', $versionOutput, $matches)
+            if (str_contains($versionOutput, 'MariaDB') && (
+                preg_match('/Distrib\s+((\d+\.\d+)[\d.]*)/', $versionOutput, $matches)
                 || preg_match('/((\d+\.\d+)[\d.]*)-MariaDB/', $versionOutput, $matches)
-            ) {
+            )) {
                 return ['product' => 'mariadb', 'label' => 'MariaDB', 'version' => $matches[1], 'cycle' => $matches[2]];
             }
 
-            if (preg_match('/Ver\s+((\d+\.\d+)[\d.]*)/', $versionOutput, $matches)) {
+            if (preg_match('/Distrib\s+((\d+\.\d+)[\d.]*)/', $versionOutput, $matches)
+                || preg_match('/Ver\s+((\d+\.\d+)[\d.]*)/', $versionOutput, $matches)
+            ) {
                 return ['product' => 'mysql', 'label' => 'MySQL', 'version' => $matches[1], 'cycle' => $matches[2]];
             }
         } catch (RunException) {
@@ -295,6 +298,13 @@ function evaluateEolStatus(string $label, array $cycle, int $warnMonths): void
 
         if ($now >= $warnDate) {
             $interval = $now->diff($eolDate);
+
+            if ($interval->invert) {
+                addRequirementRow("EOL: $label", REQUIREMENT_FAIL, "End of Life since $eolFrom");
+
+                return;
+            }
+
             $months = $interval->y * 12 + $interval->m;
             $remaining = $months > 0 ? "in $months month(s)" : 'imminent';
             addRequirementRow("EOL: $label", REQUIREMENT_WARN, "EOL $remaining ($eolFrom)");

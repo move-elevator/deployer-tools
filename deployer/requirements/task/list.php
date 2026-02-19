@@ -17,15 +17,20 @@ task('requirements:list', function (): void {
         writeln('');
         writeln('<fg=yellow;options=bold>PHP</>');
         writeln(sprintf('  Version:      >= %s', get('requirements_php_min_version')));
-        writeln(sprintf('  Extensions:   %s', implode(', ', get('requirements_php_extensions'))));
 
-        writeln('  Settings:');
+        if (get('requirements_check_php_extensions_enabled')) {
+            writeln(sprintf('  Extensions:   %s', implode(', ', get('requirements_php_extensions'))));
+        }
 
-        foreach (get('requirements_php_settings') as $setting => $value) {
-            $isComparison = in_array($setting, REQUIREMENT_BYTE_SETTINGS, true)
-                || in_array($setting, REQUIREMENT_NUMERIC_SETTINGS, true);
-            $operator = $isComparison ? '>=' : '=';
-            writeln(sprintf('    %-30s %s %s', $setting, $operator, $value));
+        if (get('requirements_check_php_settings_enabled')) {
+            writeln('  Settings:');
+
+            foreach (get('requirements_php_settings') as $setting => $value) {
+                $isComparison = in_array($setting, REQUIREMENT_BYTE_SETTINGS, true)
+                    || in_array($setting, REQUIREMENT_NUMERIC_SETTINGS, true);
+                $operator = $isComparison ? '>=' : '=';
+                writeln(sprintf('    %-30s %s %s', $setting, $operator, $value));
+            }
         }
     }
 
