@@ -462,6 +462,14 @@ function resolveDatabaseCredentials(): ?array
                     : 'TYPO3_CONF_VARS__DB__Connections__Default__password';
                 $password = $envVars[$key] ?? '';
             }
+
+            if ($host === '127.0.0.1') {
+                $envHost = $envVars['TYPO3_CONF_VARS__DB__Connections__Default__host'] ?? '';
+
+                if ($envHost !== '') {
+                    $host = $envHost;
+                }
+            }
         } elseif (has('app_type') && get('app_type') === 'symfony') {
             $databaseUrl = $envVars['DATABASE_URL'] ?? '';
 
@@ -474,6 +482,22 @@ function resolveDatabaseCredentials(): ?array
                 if ($password === '') {
                     $parsed = parse_url($databaseUrl, PHP_URL_PASS);
                     $password = is_string($parsed) ? urldecode($parsed) : '';
+                }
+
+                if ($host === '127.0.0.1') {
+                    $parsed = parse_url($databaseUrl, PHP_URL_HOST);
+
+                    if (is_string($parsed) && $parsed !== '') {
+                        $host = $parsed;
+                    }
+                }
+
+                if ($port === 3306) {
+                    $parsed = parse_url($databaseUrl, PHP_URL_PORT);
+
+                    if (is_int($parsed)) {
+                        $port = $parsed;
+                    }
                 }
             }
         }

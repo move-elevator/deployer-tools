@@ -33,7 +33,7 @@ set('database_manager_type', 'root');
 
 This database manager type uses a simple configuration file to manage the databases. It can be used in environments where a privileged database user is not available. Therefor it is not possible to create and delete databases dynamically. So a pool of existing databases must be provided, which can be used for the deployment. The database manager will use the first available database from the pool for a new feature instance.
 
-### Prerequirements
+### Prerequisites
 
 An number of configured databases in the pool, e.g. 10-20 databases.
 
@@ -63,7 +63,7 @@ This database manager type uses the [Mittwald API](https://developer.mittwald.de
 > [!NOTE]
 > The Mittwald API client is an optional dependency. Install it with `composer require mittwald/api-client`.
 
-### Prerequirements
+### Prerequisites
 
 - A Mittwald project with API access
 - An API token with database management permissions
