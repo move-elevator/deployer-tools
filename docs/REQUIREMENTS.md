@@ -107,6 +107,25 @@ Checks installed PHP and database (MariaDB/MySQL) versions against the [endoflif
 
 The warning threshold is configurable (default: 6 months before EOL).
 
+## Health check
+
+A standalone task that verifies critical services are running on the target host. This is useful as a quick smoke test before or after deployment.
+
+```bash
+$ dep requirements:health [host]
+```
+
+The task checks four categories:
+
+| Check | Method | OK | FAIL |
+|-------|--------|----|------|
+| PHP-FPM | systemctl / pgrep for `php<version>-fpm` | Process active | Process not found |
+| Webserver | systemctl / pgrep for nginx, apache2, httpd | Process active | No process found |
+| Database server | `mysqladmin ping` / `mariadb-admin ping` with process fallback | Responding or process running | No process found |
+| HTTP response | `curl` against configured URL | HTTP 2xx–4xx | HTTP 5xx, timeout, or connection refused |
+
+Service detection uses `systemctl is-active` with a `pgrep` fallback for systems without systemd.
+
 ## Configuration
 
 All settings use the `requirements_` prefix and can be overridden in the consuming project:
@@ -162,6 +181,10 @@ set('requirements_eol_api_timeout', 5);   // API timeout in seconds
 
 // Database grants check
 set('requirements_check_database_grants_enabled', true);
+
+// Health check
+set('requirements_check_health_enabled', true);
+set('requirements_health_url', 'https://example.com');
 ```
 
 ## Extending with custom checks
