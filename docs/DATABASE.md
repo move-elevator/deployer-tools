@@ -6,11 +6,22 @@ The database management should support different server environments
 
 This is the default database manager type. It uses the root user to create and delete databases. This is not recommended for production environments, but it is useful for local development or testing.
 
-### Prerequirements
+### Prerequisites
 
-You need a database user with the following grants to dynamically create and delete new databases:
+A database user needs the following grants **on global level (`*.*`)** to dynamically create and delete databases:
 
-- `SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES, LOCK TABLES, EXECUTE, CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE`
+```sql
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER,
+      CREATE TEMPORARY TABLES, LOCK TABLES, EXECUTE,
+      CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE
+ON *.* TO `<user>`@`<host>`;
+FLUSH PRIVILEGES;
+```
+
+> [!IMPORTANT]
+> The grants must be set on `*.*` (all databases), not on specific databases.
+> Otherwise the user cannot create new databases or manage tables within
+> dynamically created databases.
 
 ### Configuration
 
@@ -22,7 +33,7 @@ set('database_manager_type', 'root');
 
 This database manager type uses a simple configuration file to manage the databases. It can be used in environments where a privileged database user is not available. Therefor it is not possible to create and delete databases dynamically. So a pool of existing databases must be provided, which can be used for the deployment. The database manager will use the first available database from the pool for a new feature instance.
 
-### Prerequirements
+### Prerequisites
 
 An number of configured databases in the pool, e.g. 10-20 databases.
 
@@ -52,7 +63,7 @@ This database manager type uses the [Mittwald API](https://developer.mittwald.de
 > [!NOTE]
 > The Mittwald API client is an optional dependency. Install it with `composer require mittwald/api-client`.
 
-### Prerequirements
+### Prerequisites
 
 - A Mittwald project with API access
 - An API token with database management permissions
