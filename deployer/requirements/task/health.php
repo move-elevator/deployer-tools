@@ -16,6 +16,11 @@ task('requirements:health', function (): void {
     // 1. PHP-FPM
     try {
         $phpVersion = trim(run('php -r "echo PHP_MAJOR_VERSION.\'.\'.PHP_MINOR_VERSION;" 2>/dev/null'));
+
+        if (!preg_match('/^\d+\.\d+$/', $phpVersion)) {
+            throw new RunException('php', 1, "Unexpected PHP version output: $phpVersion", '');
+        }
+
         $fpmService = isServiceActive("php$phpVersion-fpm", 'php-fpm');
 
         if ($fpmService !== null) {
@@ -43,7 +48,7 @@ task('requirements:health', function (): void {
     $dbChecked = false;
 
     try {
-        run("$adminCmd ping --silent 2>&1 || true");
+        run("$adminCmd ping --silent 2>/dev/null");
         addRequirementRow('Database server', REQUIREMENT_OK, "$dbLabel responding");
         $dbChecked = true;
     } catch (RunException) {
