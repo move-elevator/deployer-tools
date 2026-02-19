@@ -71,8 +71,13 @@ task('requirements:health', function (): void {
         }
     }
 
+    $isRemoteDb = $dbCredentials !== null
+        && $dbCredentials['host'] !== '127.0.0.1'
+        && $dbCredentials['host'] !== 'localhost';
+
     // Fallback: try mysqladmin ping without credentials (uses ~/.my.cnf or socket)
-    if (!$dbChecked) {
+    // Skip for remote hosts — a local socket hit would be a false positive.
+    if (!$dbChecked && !$isRemoteDb) {
         try {
             run("$adminCmd ping --silent 2>/dev/null");
             addRequirementRow('Database server', REQUIREMENT_OK, "$dbLabel responding");
@@ -84,10 +89,6 @@ task('requirements:health', function (): void {
 
     // Only check for local processes if the database host is local (or unknown)
     if (!$dbChecked) {
-        $isRemoteDb = $dbCredentials !== null
-            && $dbCredentials['host'] !== '127.0.0.1'
-            && $dbCredentials['host'] !== 'localhost';
-
         if ($isRemoteDb) {
             addRequirementRow('Database server', REQUIREMENT_FAIL, sprintf(
                 'Cannot reach %s on %s:%d',
