@@ -15,7 +15,7 @@ task('requirements:check:eol', function (): void {
     }
 
     $warnMonths = max(1, (int) get('requirements_eol_warn_months'));
-    $timeout = (int) get('requirements_eol_api_timeout');
+    $timeout = max(1, (int) get('requirements_eol_api_timeout'));
 
     // Check PHP EOL
     try {
