@@ -155,7 +155,7 @@ function detectPackageVersion(string $command): ?string
     try {
         $output = trim(run($versionCmd));
 
-        if ($output !== '' && preg_match('/(\d+[\d.]+)/', $output, $matches)) {
+        if ($output !== '' && preg_match('/(\d+[\d.]*)/', $output, $matches)) {
             return $matches[1];
         }
     } catch (RunException) {
