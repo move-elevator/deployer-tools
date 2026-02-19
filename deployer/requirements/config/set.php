@@ -18,6 +18,7 @@ set('requirements_check_user_enabled', true);
 set('requirements_check_env_enabled', true);
 set('requirements_check_eol_enabled', true);
 set('requirements_check_database_grants_enabled', true);
+set('requirements_check_health_enabled', true);
 
 // Locales
 set('requirements_locales', ['de_DE.utf8', 'en_US.utf8']);
@@ -109,7 +110,6 @@ set('requirements_eol_warn_months', 6);
 set('requirements_eol_api_timeout', 5);
 
 // Health check
-set('requirements_check_health_enabled', true);
 set('requirements_health_url', 'http://localhost');
 
 // User / permissions
