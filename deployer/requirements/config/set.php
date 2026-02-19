@@ -10,11 +10,13 @@ set('requirements_rows', []);
 // Enable/disable per check category
 set('requirements_check_locales_enabled', true);
 set('requirements_check_packages_enabled', true);
+set('requirements_check_image_processing_enabled', true);
 set('requirements_check_php_extensions_enabled', true);
 set('requirements_check_php_settings_enabled', true);
 set('requirements_check_database_enabled', true);
 set('requirements_check_user_enabled', true);
 set('requirements_check_env_enabled', true);
+set('requirements_check_eol_enabled', true);
 
 // Locales
 set('requirements_locales', ['de_DE.utf8', 'en_US.utf8']);
@@ -23,7 +25,6 @@ set('requirements_locales', ['de_DE.utf8', 'en_US.utf8']);
 set('requirements_packages', [
     'rsync' => 'rsync',
     'curl' => 'curl',
-    'graphicsmagick' => 'gm',
     'ghostscript' => 'gs',
     'git' => 'git',
     'gzip' => 'gzip',
@@ -34,35 +35,48 @@ set('requirements_packages', [
     'composer' => 'composer',
 ]);
 
+// PHP minimum version (framework-aware)
+set('requirements_php_min_version', function (): string {
+    if (has('app_type') && get('app_type') === 'typo3') {
+        return '8.2.0';
+    }
+
+    return '8.1.0';
+});
+
 // PHP extensions (framework-aware)
 set('requirements_php_extensions', function (): array {
     if (has('app_type') && get('app_type') === 'typo3') {
         return [
-            'curl',
-            'gd',
-            'mbstring',
-            'soap',
-            'xml',
-            'zip',
-            'intl',
-            'apcu',
             'pdo',
+            'session',
+            'xml',
+            'filter',
+            'tokenizer',
+            'mbstring',
+            'intl',
             'pdo_mysql',
-            'json',
             'fileinfo',
+            'gd',
+            'zip',
             'openssl',
+            'curl',
+            'apcu',
         ];
     }
 
     return [
+        'pdo',
+        'session',
+        'xml',
+        'filter',
+        'tokenizer',
+        'mbstring',
+        'intl',
+        'pdo_mysql',
         'curl',
         'gd',
-        'mbstring',
-        'xml',
         'zip',
-        'intl',
-        'pdo',
-        'pdo_mysql',
     ];
 });
 
@@ -71,6 +85,7 @@ set('requirements_php_settings', [
     'max_execution_time' => '240',
     'memory_limit' => '512M',
     'max_input_vars' => '1500',
+    'pcre.jit' => '1',
     'date.timezone' => 'Europe/Berlin',
     'post_max_size' => '31M',
     'upload_max_filesize' => '30M',
@@ -78,8 +93,19 @@ set('requirements_php_settings', [
 ]);
 
 // Database
-set('requirements_mariadb_min_version', '10.2.7');
-set('requirements_mysql_min_version', '8.0.0');
+set('requirements_mariadb_min_version', '10.4.3');
+set('requirements_mysql_min_version', '8.0.17');
+
+// Image processing
+set('requirements_graphicsmagick_min_version', '1.3');
+set('requirements_imagemagick_min_version', '6.0');
+
+// Composer
+set('requirements_composer_min_version', '2.1.0');
+
+// End-of-life check (endoflife.date API)
+set('requirements_eol_warn_months', 6);
+set('requirements_eol_api_timeout', 5);
 
 // User / permissions
 set('requirements_user_group', 'www-data');

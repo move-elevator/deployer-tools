@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Deployer;
 
+use Deployer\Exception\RunException;
 use Symfony\Component\Console\Helper\Table;
 
 const REQUIREMENT_OK = 'OK';
@@ -29,6 +30,7 @@ const REQUIREMENT_NUMERIC_SETTINGS = [
     'max_execution_time',
     'max_input_vars',
     'opcache.memory_consumption',
+    'pcre.jit', // Treated as numeric (>= 1) to ensure enabled
 ];
 
 function addRequirementRow(string $check, string $status, string $info = ''): void
@@ -138,6 +140,185 @@ function meetsPhpRequirement(string $actual, string $expected, string $setting):
     }
 
     return $actual === $expected;
+}
+
+/**
+ * Try to detect the version of a CLI tool on the remote server.
+ */
+function detectPackageVersion(string $command): ?string
+{
+    $versionCmd = match ($command) {
+        'exiftool' => 'exiftool -ver 2>&1 | head -1',
+        default => "$command --version 2>&1 | head -1",
+    };
+
+    try {
+        $output = trim(run($versionCmd));
+
+        if ($output !== '' && preg_match('/(\d+[\d.]+)/', $output, $matches)) {
+            return $matches[1];
+        }
+    } catch (RunException) {
+        // Command doesn't support version flag
+    }
+
+    return null;
+}
+
+/**
+ * Detect the database product and version from the remote server.
+ *
+ * @return array{product: string, label: string, version: string, cycle: string}|null
+ */
+function detectDatabaseProduct(): ?array
+{
+    foreach (['mariadb', 'mysql'] as $command) {
+        try {
+            $versionOutput = trim(run("$command --version 2>/dev/null"));
+
+            if ($versionOutput === '') {
+                continue;
+            }
+
+            if (preg_match('/Distrib\s+((\d+\.\d+)[\d.]*)/', $versionOutput, $matches)
+                || preg_match('/((\d+\.\d+)[\d.]*)-MariaDB/', $versionOutput, $matches)
+            ) {
+                return ['product' => 'mariadb', 'label' => 'MariaDB', 'version' => $matches[1], 'cycle' => $matches[2]];
+            }
+
+            if (preg_match('/Ver\s+((\d+\.\d+)[\d.]*)/', $versionOutput, $matches)) {
+                return ['product' => 'mysql', 'label' => 'MySQL', 'version' => $matches[1], 'cycle' => $matches[2]];
+            }
+        } catch (RunException) {
+            continue;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Fetch release cycles from endoflife.date API.
+ *
+ * @return list<array{name: string, isEol: bool, eolFrom: ?string, isEoas: ?bool, eoasFrom: ?string, isMaintained: bool}>|null
+ */
+function fetchEolCycles(string $product, int $timeout = 5): ?array
+{
+    $url = sprintf('https://endoflife.date/api/v1/products/%s/', urlencode($product));
+
+    $context = stream_context_create([
+        'http' => [
+            'timeout' => $timeout,
+            'header' => "Accept: application/json\r\nUser-Agent: move-elevator/deployer-tools\r\n",
+        ],
+    ]);
+
+    $response = @file_get_contents($url, false, $context);
+
+    if ($response === false) {
+        return null;
+    }
+
+    $data = json_decode($response, true);
+
+    if (!is_array($data) || !isset($data['result']['releases'])) {
+        return null;
+    }
+
+    return $data['result']['releases'];
+}
+
+/**
+ * Find the matching release cycle for a major.minor version.
+ *
+ * @param list<array{name: string}> $cycles
+ * @return array{name: string, isEol: bool, eolFrom: ?string, isEoas: ?bool, eoasFrom: ?string, isMaintained: bool}|null
+ */
+function findEolCycle(array $cycles, string $majorMinor): ?array
+{
+    foreach ($cycles as $cycle) {
+        if ($cycle['name'] === $majorMinor) {
+            return $cycle;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Evaluate EOL status and add a requirement row.
+ */
+function evaluateEolStatus(string $label, array $cycle, int $warnMonths): void
+{
+    $now = new \DateTimeImmutable();
+
+    if ($cycle['isEol'] ?? false) {
+        $eolDate = $cycle['eolFrom'] ?? 'unknown';
+        addRequirementRow("EOL: $label", REQUIREMENT_FAIL, "End of Life since $eolDate");
+
+        return;
+    }
+
+    $eolFrom = $cycle['eolFrom'] ?? null;
+
+    if ($eolFrom !== null) {
+        try {
+            $eolDate = new \DateTimeImmutable($eolFrom);
+        } catch (\Exception) {
+            addRequirementRow("EOL: $label", REQUIREMENT_SKIP, "Invalid EOL date from API: $eolFrom");
+
+            return;
+        }
+
+        $warnDate = $eolDate->modify("-{$warnMonths} months");
+
+        if ($now >= $warnDate) {
+            $interval = $now->diff($eolDate);
+            $months = $interval->y * 12 + $interval->m;
+            $remaining = $months > 0 ? "in $months month(s)" : 'imminent';
+            addRequirementRow("EOL: $label", REQUIREMENT_WARN, "EOL $remaining ($eolFrom)");
+
+            return;
+        }
+    }
+
+    $isEoas = $cycle['isEoas'] ?? false;
+
+    if ($isEoas) {
+        $info = 'Security support only';
+        $info .= $eolFrom !== null ? ", EOL $eolFrom" : '';
+        addRequirementRow("EOL: $label", REQUIREMENT_WARN, $info);
+
+        return;
+    }
+
+    $info = 'Maintained';
+    $info .= $eolFrom !== null ? " until $eolFrom" : '';
+    addRequirementRow("EOL: $label", REQUIREMENT_OK, $info);
+}
+
+/**
+ * Check a single product against the endoflife.date API.
+ */
+function checkEolForProduct(string $label, string $product, string $cycle, int $warnMonths, int $timeout): void
+{
+    $cycles = fetchEolCycles($product, $timeout);
+
+    if ($cycles === null) {
+        addRequirementRow("EOL: $label", REQUIREMENT_SKIP, 'Could not reach endoflife.date API');
+
+        return;
+    }
+
+    $match = findEolCycle($cycles, $cycle);
+
+    if ($match === null) {
+        addRequirementRow("EOL: $label", REQUIREMENT_SKIP, "Cycle $cycle not found in API");
+
+        return;
+    }
+
+    evaluateEolStatus("$label $cycle", $match, $warnMonths);
 }
 
 /**

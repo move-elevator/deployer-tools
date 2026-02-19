@@ -11,10 +11,13 @@ task('requirements:check:php_settings', function (): void {
         return;
     }
 
-    // Retrieve PHP version
+    // Retrieve and validate PHP version
     try {
         $phpVersion = trim(run('php -r "echo PHP_VERSION;" 2>/dev/null'));
-        addRequirementRow('PHP version', REQUIREMENT_OK, $phpVersion);
+        $minVersion = get('requirements_php_min_version');
+        $meets = version_compare($phpVersion, $minVersion, '>=');
+        $info = $meets ? $phpVersion : "$phpVersion (required: >= $minVersion)";
+        addRequirementRow('PHP version', $meets ? REQUIREMENT_OK : REQUIREMENT_FAIL, $info);
     } catch (RunException) {
         addRequirementRow('PHP version', REQUIREMENT_SKIP, 'Could not determine PHP version');
     }
