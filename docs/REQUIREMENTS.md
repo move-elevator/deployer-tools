@@ -12,6 +12,12 @@ The default settings can be found within the [set.php](../deployer/requirements/
 $ dep requirements:check [host]
 ```
 
+To display a human-readable list of all requirements (without running remote checks):
+
+```bash
+$ dep requirements:list [host]
+```
+
 ## Checks
 
 ### Locales
@@ -20,7 +26,15 @@ Verifies that required system locales are available (default: `de_DE.utf8`, `en_
 
 ### System packages
 
-Checks for required CLI tools: rsync, curl, graphicsmagick, ghostscript, git, gzip, mariadb-client, unzip, patch, exiftool, composer.
+Checks for required CLI tools: rsync, curl, ghostscript, git, gzip, mariadb-client, unzip, patch, exiftool, composer (with version validation >= 2.1.0).
+
+### Image processing
+
+Checks for GraphicsMagick (>= 1.3, recommended) or ImageMagick (>= 6.0) with version validation. Either one is sufficient.
+
+### PHP version
+
+Validates the PHP version against the configured minimum (TYPO3: >= 8.2.0, default: >= 8.1.0).
 
 ### PHP extensions
 
@@ -35,6 +49,7 @@ Checks PHP CLI configuration values against expected minimums:
 | max_execution_time | >= 240 |
 | memory_limit | >= 512M |
 | max_input_vars | >= 1500 |
+| pcre.jit | >= 1 |
 | date.timezone | Europe/Berlin |
 | post_max_size | >= 31M |
 | upload_max_filesize | >= 30M |
@@ -42,7 +57,7 @@ Checks PHP CLI configuration values against expected minimums:
 
 ### Database client
 
-Checks for the availability of the `mariadb` or `mysql` client and validates the version against client-specific minimums (MariaDB: >= 10.2.7, MySQL: >= 8.0.0).
+Checks for the availability of the `mariadb` or `mysql` client and validates the version against client-specific minimums (MariaDB: >= 10.4.3, MySQL: >= 8.0.17).
 
 ### User and permissions
 
@@ -52,6 +67,20 @@ Validates that the SSH user belongs to the expected web server group (default: `
 
 Checks that the `.env` file exists in the shared directory and that all required environment variables are present. The required variables adapt automatically based on `app_type`.
 
+### End-of-life (EOL)
+
+Checks installed PHP and database (MariaDB/MySQL) versions against the [endoflife.date](https://endoflife.date) API. The API call runs locally from the deployer machine.
+
+| Condition | Status | Example |
+|-----------|--------|---------|
+| End of Life | FAIL | `End of Life since 2024-12-31` |
+| EOL approaching | WARN | `EOL in 3 month(s) (2026-06-30)` |
+| Security support only | WARN | `Security support only, EOL 2027-12-31` |
+| Fully maintained | OK | `Maintained until 2028-12-31` |
+| API unreachable | SKIP | `Could not reach endoflife.date API` |
+
+The warning threshold is configurable (default: 6 months before EOL).
+
 ## Configuration
 
 All settings use the `requirements_` prefix and can be overridden in the consuming project:
@@ -59,9 +88,13 @@ All settings use the `requirements_` prefix and can be overridden in the consumi
 ```php
 // Disable specific checks
 set('requirements_check_database_enabled', false);
+set('requirements_check_image_processing_enabled', false);
+
+// Override PHP minimum version
+set('requirements_php_min_version', '8.3.0');
 
 // Override PHP extensions list
-set('requirements_php_extensions', ['curl', 'gd', 'mbstring', 'xml', 'intl']);
+set('requirements_php_extensions', ['pdo', 'session', 'xml', 'mbstring', 'intl']);
 
 // Override PHP settings thresholds
 set('requirements_php_settings', [
@@ -76,6 +109,17 @@ set('requirements_packages', [
     'composer' => 'composer',
 ]);
 
+// Override database minimum versions
+set('requirements_mariadb_min_version', '10.6.0');
+set('requirements_mysql_min_version', '8.0.30');
+
+// Override image processing minimum versions
+set('requirements_graphicsmagick_min_version', '1.3.30');
+set('requirements_imagemagick_min_version', '7.0');
+
+// Override composer minimum version
+set('requirements_composer_min_version', '2.6.0');
+
 // Override locales
 set('requirements_locales', ['de_DE.utf8', 'en_US.utf8', 'fr_FR.utf8']);
 
@@ -84,6 +128,11 @@ set('requirements_user_group', 'apache');
 
 // Override required env variables
 set('requirements_env_vars', ['DATABASE_URL', 'APP_SECRET']);
+
+// EOL check configuration
+set('requirements_check_eol_enabled', true);
+set('requirements_eol_warn_months', 6);   // Warn X months before EOL
+set('requirements_eol_api_timeout', 5);   // API timeout in seconds
 ```
 
 ## Extending with custom checks
