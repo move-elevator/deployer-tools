@@ -59,10 +59,10 @@ Read the [documentation](docs/TYPO3.md) for detailed installation instructions a
 ### Standalone Tasks
 - [MS Teams Notification](deployer/notification/task/ms_teams.php)
 - [Database backup](deployer/sync/task/database_backup.php)
-- [Database management](docs/DATABASE.md)
 - [Security check](docs/SECURITY.md)
 - [Development](docs/DEV.md)
 - [Debug helper](docs/DEBUG.md)
+- [Requirements](docs/REQUIREMENTS.md)
 
 
 ## 💛 Acknowledgements
