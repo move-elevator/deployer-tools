@@ -6,11 +6,22 @@ The database management should support different server environments
 
 This is the default database manager type. It uses the root user to create and delete databases. This is not recommended for production environments, but it is useful for local development or testing.
 
-### Prerequirements
+### Prerequisites
 
-You need a database user with the following grants to dynamically create and delete new databases:
+A database user needs the following grants **on global level (`*.*`)** to dynamically create and delete databases:
 
-- `SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES, LOCK TABLES, EXECUTE, CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE`
+```sql
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER,
+      CREATE TEMPORARY TABLES, LOCK TABLES, EXECUTE,
+      CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE
+ON *.* TO `<user>`@`<host>`;
+FLUSH PRIVILEGES;
+```
+
+> [!IMPORTANT]
+> The grants must be set on `*.*` (all databases), not on specific databases.
+> Otherwise the user cannot create new databases or manage tables within
+> dynamically created databases.
 
 ### Configuration
 
