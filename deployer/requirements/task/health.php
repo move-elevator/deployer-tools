@@ -45,23 +45,65 @@ task('requirements:health', function (): void {
     $db = detectDatabaseProduct();
     $dbLabel = $db !== null ? $db['label'] : 'Database';
     $adminCmd = ($db !== null && $db['product'] === 'mariadb') ? 'mariadb-admin' : 'mysqladmin';
+    $dbCredentials = resolveDatabaseCredentials();
     $dbChecked = false;
 
-    try {
-        run("$adminCmd ping --silent 2>/dev/null");
-        addRequirementRow('Database server', REQUIREMENT_OK, "$dbLabel responding");
-        $dbChecked = true;
-    } catch (RunException) {
-        // Admin tool not available — fall through to process check
+    // Try mysqladmin ping with credentials when available
+    if ($dbCredentials !== null) {
+        $pingCmd = sprintf(
+            '%s ping --silent -h %s -P %d -u %s --password=%s 2>/dev/null',
+            $adminCmd,
+            escapeshellarg($dbCredentials['host']),
+            $dbCredentials['port'],
+            escapeshellarg($dbCredentials['user']),
+            escapeshellarg($dbCredentials['password'])
+        );
+
+        try {
+            run($pingCmd);
+            $hostInfo = $dbCredentials['host'] === '127.0.0.1' || $dbCredentials['host'] === 'localhost'
+                ? 'local'
+                : $dbCredentials['host'];
+            addRequirementRow('Database server', REQUIREMENT_OK, "$dbLabel responding ($hostInfo)");
+            $dbChecked = true;
+        } catch (RunException) {
+            // Credentials available but ping failed — fall through
+        }
     }
 
-    if (!$dbChecked) {
-        $dbProcess = isServiceActive('mysqld', 'mariadbd');
+    $isRemoteDb = $dbCredentials !== null
+        && $dbCredentials['host'] !== '127.0.0.1'
+        && $dbCredentials['host'] !== 'localhost';
 
-        if ($dbProcess !== null) {
-            addRequirementRow('Database server', REQUIREMENT_OK, "$dbLabel process running ($dbProcess)");
+    // Fallback: try mysqladmin ping without credentials (uses ~/.my.cnf or socket)
+    // Skip for remote hosts — a local socket hit would be a false positive.
+    if (!$dbChecked && !$isRemoteDb) {
+        try {
+            run("$adminCmd ping --silent 2>/dev/null");
+            addRequirementRow('Database server', REQUIREMENT_OK, "$dbLabel responding");
+            $dbChecked = true;
+        } catch (RunException) {
+            // Admin tool not available — fall through to process check
+        }
+    }
+
+    // Only check for local processes if the database host is local (or unknown)
+    if (!$dbChecked) {
+        if ($isRemoteDb) {
+            addRequirementRow('Database server', REQUIREMENT_FAIL, sprintf(
+                'Cannot reach %s on %s:%d',
+                $dbLabel,
+                $dbCredentials['host'],
+                $dbCredentials['port']
+            ));
         } else {
-            addRequirementRow('Database server', REQUIREMENT_FAIL, 'No mysqld or mariadbd process found');
+            $dbProcess = isServiceActive('mysqld', 'mariadbd');
+
+            if ($dbProcess !== null) {
+                addRequirementRow('Database server', REQUIREMENT_OK, "$dbLabel process running ($dbProcess)");
+            } else {
+                addRequirementRow('Database server', REQUIREMENT_FAIL, 'No mysqld or mariadbd process found');
+            }
         }
     }
 
