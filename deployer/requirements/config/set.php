@@ -107,6 +107,10 @@ set('requirements_composer_min_version', '2.1.0');
 set('requirements_eol_warn_months', 6);
 set('requirements_eol_api_timeout', 5);
 
+// Health check
+set('requirements_check_health_enabled', true);
+set('requirements_health_url', 'http://localhost');
+
 // User / permissions
 set('requirements_user_group', 'www-data');
 set('requirements_deploy_path_permissions', '2770');

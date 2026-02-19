@@ -51,6 +51,7 @@ require_once(__DIR__ . '/deployer/requirements/task/check_user.php');
 require_once(__DIR__ . '/deployer/requirements/task/check_env.php');
 require_once(__DIR__ . '/deployer/requirements/task/check_eol.php');
 require_once(__DIR__ . '/deployer/requirements/task/list.php');
+require_once(__DIR__ . '/deployer/requirements/task/health.php');
 
 /*
  * dev
