@@ -43,14 +43,13 @@ server {
 
     # Deny access to protected directories across all instances
     location ~ /(typo3conf|var|config)/ {
-        deny all;
         return 403;
     }
 
     # PHP-FPM for all .php files including subdirectories
     location ~ \.php$ {
         include fastcgi_params;
-        fastcgi_pass unix:/run/php/php-fpm.sock;
+        fastcgi_pass unix:/run/php/php-fpm.sock; # adjust to match your PHP-FPM pool socket
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         try_files $uri =404;
     }
@@ -79,7 +78,7 @@ server {
 
     location ~ \.php$ {
         include fastcgi_params;
-        fastcgi_pass unix:/run/php/php-fpm.sock;
+        fastcgi_pass unix:/run/php/php-fpm.sock; # adjust to match your PHP-FPM pool socket
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         try_files $uri =404;
     }
