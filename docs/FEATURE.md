@@ -30,6 +30,8 @@ The following steps are necessary to successfully setup the deployment workflow:
 
 Choose an according [database management](DATABASE.md) type for your application.
 
+Configure your [web server](WEBSERVER.md) (Apache or nginx) to serve feature branch instances.
+
 Add the following line to your deployer host entry, to enable the feature branch deployment for this stage:
 
 ```yaml

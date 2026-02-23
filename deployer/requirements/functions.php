@@ -81,7 +81,7 @@ function renderRequirementsTable(): void
     $rows = get('requirements_rows');
 
     $tableRows = array_map(
-        static fn(array $row): array => [
+        static fn (array $row): array => [
             $row['check'],
             formatRequirementStatus($row['status']),
             $row['info'],
@@ -117,7 +117,7 @@ function parsePhpBytes(string $value): int
 {
     $value = trim($value);
 
-    if ($value === '-1') {
+    if ('-1' === $value) {
         return -1;
     }
 
@@ -138,11 +138,11 @@ function meetsPhpRequirement(string $actual, string $expected, string $setting):
         $actualBytes = parsePhpBytes($actual);
         $expectedBytes = parsePhpBytes($expected);
 
-        if ($actualBytes === -1) {
+        if (-1 === $actualBytes) {
             return true;
         }
 
-        if ($expectedBytes === -1) {
+        if (-1 === $expectedBytes) {
             return false;
         }
 
@@ -153,7 +153,7 @@ function meetsPhpRequirement(string $actual, string $expected, string $setting):
         $actualInt = (int) $actual;
         $expectedInt = (int) $expected;
 
-        if ($setting === 'max_execution_time' && $actualInt === 0) {
+        if ('max_execution_time' === $setting && 0 === $actualInt) {
             return true;
         }
 
@@ -176,7 +176,7 @@ function detectPackageVersion(string $command): ?string
     try {
         $output = trim(run($versionCmd));
 
-        if ($output !== '' && preg_match('/(\d+[\d.]*)/', $output, $matches)) {
+        if ('' !== $output && preg_match('/(\d+[\d.]*)/', $output, $matches)) {
             return $matches[1];
         }
     } catch (RunException) {
@@ -197,7 +197,7 @@ function detectDatabaseProduct(): ?array
         try {
             $versionOutput = trim(run("$command --version 2>/dev/null"));
 
-            if ($versionOutput === '') {
+            if ('' === $versionOutput) {
                 continue;
             }
 
@@ -239,7 +239,7 @@ function fetchEolCycles(string $product, int $timeout = 5): ?array
 
     $response = @file_get_contents($url, false, $context);
 
-    if ($response === false) {
+    if (false === $response) {
         return null;
     }
 
@@ -285,7 +285,7 @@ function evaluateEolStatus(string $label, array $cycle, int $warnMonths): void
 
     $eolFrom = $cycle['eolFrom'] ?? null;
 
-    if ($eolFrom !== null) {
+    if (null !== $eolFrom) {
         try {
             $eolDate = new \DateTimeImmutable($eolFrom);
         } catch (\Exception) {
@@ -317,14 +317,14 @@ function evaluateEolStatus(string $label, array $cycle, int $warnMonths): void
 
     if ($isEoas) {
         $info = 'Security support only';
-        $info .= $eolFrom !== null ? ", EOL $eolFrom" : '';
+        $info .= null !== $eolFrom ? ", EOL $eolFrom" : '';
         addRequirementRow("EOL: $label", REQUIREMENT_WARN, $info);
 
         return;
     }
 
     $info = 'Maintained';
-    $info .= $eolFrom !== null ? " until $eolFrom" : '';
+    $info .= null !== $eolFrom ? " until $eolFrom" : '';
     addRequirementRow("EOL: $label", REQUIREMENT_OK, $info);
 }
 
@@ -335,7 +335,7 @@ function checkEolForProduct(string $label, string $product, string $cycle, int $
 {
     $cycles = fetchEolCycles($product, $timeout);
 
-    if ($cycles === null) {
+    if (null === $cycles) {
         addRequirementRow("EOL: $label", REQUIREMENT_SKIP, 'Could not reach endoflife.date API');
 
         return;
@@ -343,7 +343,7 @@ function checkEolForProduct(string $label, string $product, string $cycle, int $
 
     $match = findEolCycle($cycles, $cycle);
 
-    if ($match === null) {
+    if (null === $match) {
         addRequirementRow("EOL: $label", REQUIREMENT_SKIP, "Cycle $cycle not found in API");
 
         return;
@@ -366,7 +366,7 @@ function isServiceActive(string ...$names): ?string
             if ($hasSystemctl) {
                 $status = trim(run("systemctl is-active $name 2>/dev/null || true"));
 
-                if ($status === 'active') {
+                if ('active' === $status) {
                     return $name;
                 }
             }
@@ -401,7 +401,7 @@ function getSharedEnvVars(): array
     foreach ($lines as $line) {
         $line = trim($line);
 
-        if ($line === '' || str_starts_with($line, '#')) {
+        if ('' === $line || str_starts_with($line, '#')) {
             continue;
         }
 
@@ -442,59 +442,59 @@ function resolveDatabaseCredentials(): ?array
     $host = has('database_host') ? (string) get('database_host') : '127.0.0.1';
     $port = has('database_port') ? (int) get('database_port') : 3306;
 
-    if ($password === '') {
+    if ('' === $password) {
         $envPassword = getenv('DEPLOYER_CONFIG_DATABASE_PASSWORD');
 
-        if (is_string($envPassword) && $envPassword !== '') {
+        if (is_string($envPassword) && '' !== $envPassword) {
             $password = $envPassword;
         }
     }
 
-    if ($user === '' || $password === '') {
+    if ('' === $user || '' === $password) {
         $envVars = getSharedEnvVars();
 
-        if (has('app_type') && get('app_type') === 'typo3') {
-            if ($user === '') {
+        if (has('app_type') && 'typo3' === get('app_type')) {
+            if ('' === $user) {
                 $user = $envVars['TYPO3_CONF_VARS__DB__Connections__Default__user'] ?? '';
             }
 
-            if ($password === '') {
+            if ('' === $password) {
                 $key = has('env_key_database_passwort')
                     ? get('env_key_database_passwort')
                     : 'TYPO3_CONF_VARS__DB__Connections__Default__password';
                 $password = $envVars[$key] ?? '';
             }
 
-            if ($host === '127.0.0.1') {
+            if ('127.0.0.1' === $host) {
                 $envHost = $envVars['TYPO3_CONF_VARS__DB__Connections__Default__host'] ?? '';
 
-                if ($envHost !== '') {
+                if ('' !== $envHost) {
                     $host = $envHost;
                 }
             }
-        } elseif (has('app_type') && get('app_type') === 'symfony') {
+        } elseif (has('app_type') && 'symfony' === get('app_type')) {
             $databaseUrl = $envVars['DATABASE_URL'] ?? '';
 
-            if ($databaseUrl !== '') {
-                if ($user === '') {
+            if ('' !== $databaseUrl) {
+                if ('' === $user) {
                     $parsed = parse_url($databaseUrl, PHP_URL_USER);
                     $user = is_string($parsed) ? urldecode($parsed) : '';
                 }
 
-                if ($password === '') {
+                if ('' === $password) {
                     $parsed = parse_url($databaseUrl, PHP_URL_PASS);
                     $password = is_string($parsed) ? urldecode($parsed) : '';
                 }
 
-                if ($host === '127.0.0.1') {
+                if ('127.0.0.1' === $host) {
                     $parsed = parse_url($databaseUrl, PHP_URL_HOST);
 
-                    if (is_string($parsed) && $parsed !== '') {
+                    if (is_string($parsed) && '' !== $parsed) {
                         $host = $parsed;
                     }
                 }
 
-                if ($port === 3306) {
+                if (3306 === $port) {
                     $parsed = parse_url($databaseUrl, PHP_URL_PORT);
 
                     if (is_int($parsed)) {
@@ -505,7 +505,7 @@ function resolveDatabaseCredentials(): ?array
         }
     }
 
-    if ($user === '' || $password === '') {
+    if ('' === $user || '' === $password) {
         return null;
     }
 
@@ -536,7 +536,7 @@ function parseGlobalGrants(string $grantsOutput): array
 
         $grantsStr = strtoupper(trim($matches[1]));
 
-        if ($grantsStr === 'ALL PRIVILEGES' || $grantsStr === 'ALL') {
+        if ('ALL PRIVILEGES' === $grantsStr || 'ALL' === $grantsStr) {
             return ['ok' => true, 'missing' => []];
         }
 
