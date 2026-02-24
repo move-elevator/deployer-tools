@@ -97,9 +97,9 @@ function checkImageToolFormatSupport(): void
     foreach ($formats as $formatKey => $label) {
         $supported = (bool) preg_match('/^\s*' . $formatKey . '\b/mi', $formatList);
         addRequirementRow(
-            "$toolLabel: $label",
+            "IM/GM: $label",
             $supported ? REQUIREMENT_OK : REQUIREMENT_WARN,
-            $supported ? 'Supported' : 'Format not supported'
+            $supported ? "Supported ($toolLabel)" : "Format not supported ($toolLabel)"
         );
     }
 }

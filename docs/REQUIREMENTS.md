@@ -37,11 +37,11 @@ Checks for modern media format support across the PHP GD library and the install
 
 | Check | Method | OK | WARN | SKIP |
 |-------|--------|----|------|------|
-| GD: AVIF Support | `gd_info()` key `AVIF Support` | Compiled into GD | Not compiled into GD | GD not available |
-| GD: WebP Support | `gd_info()` key `WebP Support` | Compiled into GD | Not compiled into GD | GD not available |
-| IM/GM: AVIF | Format list (`-list format`) | Format supported | Format not supported | No tool found |
-| IM/GM: WebP | Format list (`-list format`) | Format supported | Format not supported | No tool found |
-| PHP ext: brotli | `php -m` | Loaded | Not loaded | — |
+| GD: AVIF Support | `gd_info()` key `AVIF Support` | Supported | Not compiled into GD | GD not available |
+| GD: WebP Support | `gd_info()` key `WebP Support` | Supported | Not compiled into GD | GD not available |
+| IM/GM: AVIF | Format list (`-list format`) | Supported (tool name) | Format not supported (tool name) | No image processing tool found |
+| IM/GM: WebP | Format list (`-list format`) | Supported (tool name) | Format not supported (tool name) | No image processing tool found |
+| PHP ext: brotli | `php -m` | Loaded | Not loaded | Could not retrieve PHP modules |
 
 All checks use WARN (not FAIL) since these features are recommended but not strictly required.
 
