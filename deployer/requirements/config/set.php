@@ -11,6 +11,7 @@ set('requirements_rows', []);
 set('requirements_check_locales_enabled', true);
 set('requirements_check_packages_enabled', true);
 set('requirements_check_image_processing_enabled', true);
+set('requirements_check_media_support_enabled', true);
 set('requirements_check_php_extensions_enabled', true);
 set('requirements_check_php_settings_enabled', true);
 set('requirements_check_database_enabled', true);

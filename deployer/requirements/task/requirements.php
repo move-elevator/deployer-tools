@@ -8,6 +8,7 @@ task('requirements:check', [
     'requirements:check:locales',
     'requirements:check:packages',
     'requirements:check:image_processing',
+    'requirements:check:media_support',
     'requirements:check:php_extensions',
     'requirements:check:php_settings',
     'requirements:check:database',
