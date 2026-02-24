@@ -21,7 +21,6 @@ $ dep requirements:list [host]
 ## Checks
 
 ### Locales
-
 Verifies that required system locales are available (default: `de_DE.utf8`, `en_US.utf8`).
 
 ### System packages
@@ -31,6 +30,20 @@ Checks for required CLI tools: rsync, curl, ghostscript, git, gzip, mariadb-clie
 ### Image processing
 
 Checks for GraphicsMagick (>= 1.3, recommended) or ImageMagick (>= 6.0) with version validation. Either one is sufficient.
+
+### Media support
+
+Checks for modern media format support across the PHP GD library and the installed image processing tool (GraphicsMagick or ImageMagick):
+
+| Check | Method | OK | WARN | SKIP |
+|-------|--------|----|------|------|
+| GD: AVIF Support | `gd_info()` key `AVIF Support` | Supported | Not compiled into GD | GD not available |
+| GD: WebP Support | `gd_info()` key `WebP Support` | Supported | Not compiled into GD | GD not available |
+| IM/GM: AVIF | Format list (`-list format`) | Supported (tool name) | Format not supported (tool name) | No image processing tool found |
+| IM/GM: WebP | Format list (`-list format`) | Supported (tool name) | Format not supported (tool name) | No image processing tool found |
+| PHP ext: brotli | `php -m` | Loaded | Not loaded | Could not retrieve PHP modules |
+
+All checks use WARN (not FAIL) since these features are recommended but not strictly required.
 
 ### PHP version
 
@@ -157,6 +170,9 @@ set('requirements_packages', [
 // Override database minimum versions
 set('requirements_mariadb_min_version', '10.6.0');
 set('requirements_mysql_min_version', '8.0.30');
+
+// Disable media support checks (AVIF, WebP, brotli)
+set('requirements_check_media_support_enabled', false);
 
 // Override image processing minimum versions
 set('requirements_graphicsmagick_min_version', '1.3.30');
