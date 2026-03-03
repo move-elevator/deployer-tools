@@ -95,6 +95,7 @@ function renderRemoteTemplates(): void
         'DEPLOYER_CONFIG_FEATURE_NAME' => (string)$feature,
         'DEPLOYER_CONFIG_FEATURE_URL' => get('public_urls')[0],
         'DEPLOYER_CONFIG_FEATURE_PATH' => $featurePath,
+        'DEPLOYER_CONFIG_ENCRYPTION_KEY' => bin2hex(random_bytes(48)),
     ],
         $additionalTemplateVariables)
     ;
