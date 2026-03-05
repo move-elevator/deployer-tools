@@ -66,7 +66,6 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
                         body: new CreateMysqlDatabaseRequestBody(
                             database: (new CreateMySqlDatabase(
                                 $featureName,
-                                $projectId,
                                 $databaseVersion,
                             ))->withCharacterSettings(
                                 new CharacterSettings(
