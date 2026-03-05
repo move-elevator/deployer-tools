@@ -49,30 +49,46 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
      */
     public function create(): void
     {
-        debug('Creating database');
-        $response = $this->initClient()
-            ->database()
-            ->createMysqlDatabase(
-                new CreateMysqlDatabaseRequest(
-                    projectId: get('mittwald_project_id'),
-                    body: new CreateMysqlDatabaseRequestBody(
-                        database: (new CreateMySqlDatabase(
-                            $this->getFeatureName(),
-                            get('mittwald_project_id'),
-                            get('mittwald_database_version', '8.4')
-                        ))->withCharacterSettings(
-                            new CharacterSettings(
-                                characterSet: get('mittwald_database_character_set', 'utf8mb4'),
-                                collation: get('mittwald_database_collation', 'utf8mb4_unicode_ci')
+        $projectId = get('mittwald_project_id');
+        $featureName = $this->getFeatureName();
+        $databaseVersion = get('mittwald_database_version', '8.4');
+        $characterSet = get('mittwald_database_character_set', 'utf8mb4');
+        $collation = get('mittwald_database_collation', 'utf8mb4_unicode_ci');
+
+        debug("Creating database '{$featureName}' for project '{$projectId}' (MySQL {$databaseVersion}, {$characterSet}/{$collation})");
+
+        try {
+            $response = $this->initClient()
+                ->database()
+                ->createMysqlDatabase(
+                    new CreateMysqlDatabaseRequest(
+                        projectId: $projectId,
+                        body: new CreateMysqlDatabaseRequestBody(
+                            database: (new CreateMySqlDatabase(
+                                $featureName,
+                                $projectId,
+                                $databaseVersion,
+                            ))->withCharacterSettings(
+                                new CharacterSettings(
+                                    characterSet: $characterSet,
+                                    collation: $collation,
+                                )
+                            ),
+                            user: new CreateMySqlUserWithDatabase(
+                                CreateMySqlUserWithDatabaseAccessLevel::full,
+                                VarUtility::getDatabasePassword()
                             )
-                        ),
-                        user: new CreateMySqlUserWithDatabase(
-                            CreateMySqlUserWithDatabaseAccessLevel::full,
-                            VarUtility::getDatabasePassword()
                         )
                     )
-                )
+                );
+        } catch (UnexpectedResponseException $e) {
+            throw new \RuntimeException(
+                "Failed to create database '{$featureName}' for project '{$projectId}' "
+                . "(MySQL {$databaseVersion}, {$characterSet}/{$collation}): {$e->getMessage()}",
+                0,
+                $e,
             );
+        }
 
         $responseBody = $response->getBody();
 
