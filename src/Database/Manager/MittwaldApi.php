@@ -94,7 +94,11 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
             throw new \RuntimeException('Database is not ready for feature ' . $this->getFeatureName() . ' after waiting period.');
         }
 
-        $database = $this->getDatabase($responseBody->getId());
+        $database = $this->getDatabase(
+            $responseBody->getId(),
+            (int) get('mittwald_database_wait', 30),
+            (int) get('mittwald_database_retries', 20),
+        );
 
         $reachable = $this->checkDatabaseHostReachable(
             $database->getHostName(),
@@ -114,7 +118,11 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
         // dependency for db_sync_tool, TYPO3 CLI, and all subsequent remote commands.
         $databaseHost = $this->resolveHostnameToIp($database->getHostName());
 
-        $user = $this->getDatabaseUser($responseBody->getUserId());
+        $user = $this->getDatabaseUser(
+            $responseBody->getUserId(),
+            (int) get('mittwald_database_wait', 30),
+            (int) get('mittwald_database_retries', 20),
+        );
 
         $this->initDatabaseConfiguration($database, $user, $databaseHost);
     }
@@ -204,35 +212,58 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
      * @throws GuzzleException
      * @throws UnexpectedResponseException
      */
-    private function getDatabase(string $id): MySqlDatabase
+    private function getDatabase(string $id, int $waitingTime = 10, int $maxRetries = 5): MySqlDatabase
     {
-        $response = $this->initClient()
-            ->database()
-            ->getMysqlDatabase(
-                new GetMysqlDatabaseRequest(
-                    mysqlDatabaseId: $id
-                )
-            );
-
-
-        return $response->getBody();
+        return $this->retryOnUnexpectedResponse(
+            fn () => $this->initClient()
+                ->database()
+                ->getMysqlDatabase(new GetMysqlDatabaseRequest(mysqlDatabaseId: $id))
+                ->getBody(),
+            'getDatabase',
+            $waitingTime,
+            $maxRetries,
+        );
     }
 
     /**
      * @throws GuzzleException
      * @throws UnexpectedResponseException
      */
-    private function getDatabaseUser(string $id): MysqlUser
+    private function getDatabaseUser(string $id, int $waitingTime = 10, int $maxRetries = 5): MysqlUser
     {
-        $response = $this->initClient()
-            ->database()
-            ->getMysqlUser(
-                new GetMysqlUserRequest(
-                    mysqlUserId: $id
-                )
-            );
+        return $this->retryOnUnexpectedResponse(
+            fn () => $this->initClient()
+                ->database()
+                ->getMysqlUser(new GetMysqlUserRequest(mysqlUserId: $id))
+                ->getBody(),
+            'getDatabaseUser',
+            $waitingTime,
+            $maxRetries,
+        );
+    }
 
-        return $response->getBody();
+    /**
+     * @template T
+     * @param callable(): T $operation
+     * @return T
+     * @throws UnexpectedResponseException
+     */
+    private function retryOnUnexpectedResponse(callable $operation, string $label, int $waitingTime, int $maxRetries): mixed
+    {
+        while ($maxRetries > 0) {
+            try {
+                return $operation();
+            } catch (UnexpectedResponseException $e) {
+                $maxRetries--;
+                debug("{$label}: {$e->getMessage()}, remaining attempts: {$maxRetries}");
+                if ($maxRetries <= 0) {
+                    throw $e;
+                }
+                sleep($waitingTime);
+            }
+        }
+
+        throw new \RuntimeException("{$label} failed after all retry attempts.");
     }
 
     private function initDatabaseConfiguration(MySqlDatabase $database, MySqlUser $user, string $databaseHost): void
