@@ -37,7 +37,7 @@ class Root extends AbstractManager implements ManagerInterface
         debug('Deleting database');
         $databaseName = $this->getDatabaseName($feature);
         $databaseRemoveCommand = "DROP DATABASE IF EXISTS `$databaseName`;";
-        $this->run($databaseRemoveCommand);
+        $this->run($databaseRemoveCommand, false);
     }
 
     public function exists(?string $feature = null): bool
