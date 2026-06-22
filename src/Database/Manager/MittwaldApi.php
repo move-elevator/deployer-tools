@@ -300,6 +300,11 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
      */
     private function resolveHostnameToIp(string $hostname): string
     {
+        if (!get('mittwald_resolve_host_to_ip', false)) {
+            debug("Hostname-to-IP resolution disabled, using hostname {$hostname}.");
+            return $hostname;
+        }
+
         try {
             $resolveCmd = sprintf('echo gethostbyname("%s");', addslashes($hostname));
             $ip = trim(run("php -r " . escapeshellarg($resolveCmd)));

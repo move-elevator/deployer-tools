@@ -69,3 +69,9 @@ set('feature_stop_disallowed_names', [
  * Database Manager
  */
 set('database_manager_type', 'default');
+
+// Resolve the Mittwald database hostname to its IP and pin it in .env (workaround for DNS
+// flapping of freshly created databases). Disabled by default, since pinning the IP breaks
+// when Mittwald rotates IPs or enforces TLS against the hostname. Enable only if affected by
+// DNS flapping.
+set('mittwald_resolve_host_to_ip', false);

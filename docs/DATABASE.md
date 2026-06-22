@@ -86,7 +86,14 @@ set('mittwald_project_id', 'your-project-id');
 | `mittwald_database_collation` | `utf8mb4_unicode_ci` | Collation |
 | `mittwald_database_wait` | `30` | Polling interval in seconds |
 | `mittwald_database_retries` | `20` | Max retry attempts |
+| `mittwald_resolve_host_to_ip` | `false` | Pin the resolved IP in `.env` instead of the hostname (see DNS flapping) |
 
 ### DNS flapping
 
-After database creation the DNS entry for the database host (e.g. `mysql-xyz.pg-s-xxx.db.project.host`) may not be resolvable immediately and can flap intermittently. The feature sync task resolves the database hostname to an IP address in the `.env` file to bypass this issue.
+After database creation the DNS entry for the database host (e.g. `mysql-xyz.pg-s-xxx.db.project.host`) may not be resolvable immediately and can flap intermittently.
+
+As a workaround, the database hostname can be resolved to its IP address once (while DNS is known to work) and pinned in the `.env` file, bypassing DNS for all subsequent commands. This is **disabled by default** (`mittwald_resolve_host_to_ip` = `false`), because pinning the IP breaks when Mittwald rotates database IPs or enforces TLS against the hostname. Enable it only for projects actually affected by DNS flapping:
+
+```php
+set('mittwald_resolve_host_to_ip', true);
+```
