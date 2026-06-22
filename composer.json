@@ -3,7 +3,7 @@
 	"description": "The Deployer Tools combine multiple deployer recipes for an improved deployment process and workflow.",
 	"license": "GPL-3.0-or-later",
 	"type": "library",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"authors": [
 		{
 			"name": "Konrad Michalik",
