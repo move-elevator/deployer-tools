@@ -75,6 +75,11 @@ function waitForDatabaseHost(): void
  */
 function resolveDatabaseHostToIp(string $hostname): void
 {
+    if (!get('mittwald_resolve_host_to_ip', false)) {
+        debug("Hostname-to-IP resolution disabled, keeping host {$hostname} in .env.");
+        return;
+    }
+
     $resolveCmd = sprintf('echo gethostbyname("%s");', $hostname);
     $ip = trim(run("php -r " . escapeshellarg($resolveCmd)));
 
