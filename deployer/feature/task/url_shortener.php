@@ -4,8 +4,12 @@ namespace Deployer;
 
 tasK('feature:urlshortener', function () {
 
-    if (!input()->getOption('feature')) return;
-    if (!isUrlShortener()) return;
+    if (!input()->getOption('feature')) {
+        return;
+    }
+    if (!isUrlShortener()) {
+        return;
+    }
 
     $symlinkDir = get('deploy_path') . "/current/" . get('web_path');
 
@@ -35,7 +39,9 @@ function isUrlShortener(): bool
  */
 function initUrlShortener(?string $feature = null): void
 {
-    if (!isUrlShortener()) return;
+    if (!isUrlShortener()) {
+        return;
+    }
 
     debug('Adjust host configuration because of url shortener function');
     set('deploy_path_url_shortener', get('deploy_path'));
@@ -43,7 +49,7 @@ function initUrlShortener(?string $feature = null): void
 
     $publicUrls = [];
     foreach (get('public_urls') as $publicUrl) {
-        $publicUrls[] = $publicUrl . $feature;
+        $publicUrls[] = rtrim($publicUrl, '/') . '/' . $feature . '/';
     }
     set('public_urls', $publicUrls);
 }
