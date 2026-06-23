@@ -16,7 +16,7 @@ task('deploy:database:update', function () {
  */
 task('database:backup')->select('prod');
 before('deploy:database:update', 'database:backup');
-set('sync_database_backup_config', __DIR__ . '/.deployment/db-sync-tool/backup-prod.yaml');
+set('sync_database_backup_config', './.deployment/db-sync-tool/backup-prod.yaml');
 
 
 function getDatabasePasswordForTypo3(): string|bool
