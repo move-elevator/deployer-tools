@@ -15,7 +15,7 @@
 		"php": "^8.1",
 		"ext-json": "*",
 		"ext-pcre": "*",
-		"deployer/deployer": "^7.0",
+		"deployer/deployer": "^8.0",
 		"sourcebroker/deployer-extended": "^24.0",
 		"sourcebroker/deployer-loader": "^5.0"
 	},
