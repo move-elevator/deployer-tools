@@ -21,7 +21,7 @@ class VarUtility
     {
         $var = ucfirst($var);
         $type = get('app_type');
-        $functionName = "\Deployer\getDatabase{$var}For" . ucfirst($type);
+        $functionName = "\Deployer\getDatabase{$var}For" . ucfirst((string) $type);
         require_once(__DIR__ . "/../../deployer/$type/task/deploy_database.php");
         if (function_exists($functionName)) {
             return call_user_func($functionName);
