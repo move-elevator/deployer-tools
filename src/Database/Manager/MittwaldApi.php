@@ -196,7 +196,17 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
             throw new \RuntimeException('Deployer variable "mittwald_project_id" is not set or empty.');
         }
 
-        $this->client = MittwaldAPIV2Client::newWithToken(get('mittwald_api_client'));
+        $apiToken = (string) get('mittwald_api_client');
+        if ('' === trim($apiToken)) {
+            throw new \RuntimeException(
+                'Deployer variable "mittwald_api_client" resolved to an empty string. '
+                . 'If this value comes from a CI/CD variable, check that it is not restricted '
+                . 'to protected branches/refs (e.g. GitLab "Protect variable"), since feature '
+                . 'branches are typically unprotected.'
+            );
+        }
+
+        $this->client = MittwaldAPIV2Client::newWithToken($apiToken);
         return $this->client;
     }
 
