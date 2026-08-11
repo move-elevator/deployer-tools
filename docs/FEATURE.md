@@ -55,11 +55,7 @@ The `feature:setup` command represent the initialization of a new feature branch
 $ vendor/bin/dep feature:setup stage --feature=TEST-01
 ```
 
-This task should be declared to run at first within your deploy task:
-
-```php
-before('deploy:info', 'feature:setup');
-```
+The recipe already wires this task into the deploy flow, together with a `feature:init` before `deploy:info`. That ordering matters: `deploy:info` resolves `{{release_name}}` and deployer caches the result for the rest of the run, so the feature instance has to be known before it runs. Do not hook `feature:setup` any earlier yourself.
 
 If the application needs to setup additional configuration files for e.g. storing the database credentials, use the feature templates to provide this kind of dynamic setup. For example the TYPO3 setup with a `.env` file:
 
@@ -88,6 +84,8 @@ You can extend these list be providing more environment variables starting with 
 > ```php
 > before('deploy:rollback', 'feature:init');
 > ```
+>
+> `feature:init` is a no-op without `--feature`, so the command keeps operating on the base instance. Use `feature:select` instead if the command should offer an interactive choice between the existing feature instances when `--feature` is omitted.
 
 ### Deletion
 
