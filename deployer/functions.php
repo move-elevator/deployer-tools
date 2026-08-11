@@ -37,15 +37,22 @@ function checkVerbosity(): void
 /**
  * Whether a feature instance was addressed via --feature.
  *
- * An empty --feature= counts as absent: it would otherwise resolve to the base
+ * A blank --feature= counts as absent: it would otherwise resolve to the base
  * instance path and let the feature scaffolding write into the reference stage.
- * The option itself only exists once the feature recipe is loaded, hence hasOption().
+ * Only null and blank strings qualify — empty() would also swallow the perfectly
+ * valid feature name "0". The option itself only exists once the feature recipe
+ * is loaded, hence hasOption().
  *
  * @return bool
  */
 function featureRequested(): bool
 {
-    return input()->hasOption('feature') && !empty(input()->getOption('feature'));
+    if (!input()->hasOption('feature')) {
+        return false;
+    }
+    $feature = input()->getOption('feature');
+
+    return null !== $feature && '' !== trim((string)$feature);
 }
 
 /**

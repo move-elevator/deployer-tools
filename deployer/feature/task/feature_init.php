@@ -49,9 +49,12 @@ function initFeature(?string $feature = null): ?string
 
     prepareDeployerConfiguration();
     // use feature variable or feature input option or ask for feature branch
-    $feature = $feature ?: (featureRequested() ? input()->getOption('feature') : askChoice('Please select a feature branch', array_map(function ($array) {
-        return $array[2];
-    }, listFeatureInstances())));
+    // (?: would discard a caller-provided "0", which is a valid instance name)
+    if (null === $feature || '' === trim($feature)) {
+        $feature = featureRequested() ? input()->getOption('feature') : askChoice('Please select a feature branch', array_map(function ($array) {
+            return $array[2];
+        }, listFeatureInstances()));
+    }
     set('feature', $feature);
 
     if (isUrlShortener()) {

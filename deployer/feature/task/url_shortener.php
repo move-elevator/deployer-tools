@@ -2,7 +2,7 @@
 
 namespace Deployer;
 
-tasK('feature:urlshortener', function () {
+task('feature:urlshortener', function () {
 
     if (!featureRequested()) {
         return;
