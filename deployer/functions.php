@@ -35,6 +35,20 @@ function checkVerbosity(): void
 }
 
 /**
+ * Whether a feature instance was addressed via --feature.
+ *
+ * An empty --feature= counts as absent: it would otherwise resolve to the base
+ * instance path and let the feature scaffolding write into the reference stage.
+ * The option itself only exists once the feature recipe is loaded, hence hasOption().
+ *
+ * @return bool
+ */
+function featureRequested(): bool
+{
+    return input()->hasOption('feature') && !empty(input()->getOption('feature'));
+}
+
+/**
  * Extend the deployer configuration with available environment variables (starting with "DEPLOYER_CONFIG_"):
  *
  * ENVIRONMENT_VARIABLE => deployer_configuration
