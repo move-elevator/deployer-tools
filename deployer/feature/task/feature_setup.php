@@ -8,7 +8,9 @@ require_once('feature_init.php');
 require_once('url_shortener.php');
 
 task('feature:setup', function () {
-    if (!input()->hasOption('feature')) {
+    // Without a feature we are deploying the base instance and must not touch any
+    // feature scaffolding — renderRemoteTemplates() would overwrite its .env.
+    if (!featureRequested()) {
         return;
     }
     checkVerbosity();

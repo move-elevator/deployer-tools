@@ -2,9 +2,9 @@
 
 namespace Deployer;
 
-tasK('feature:urlshortener', function () {
+task('feature:urlshortener', function () {
 
-    if (!input()->getOption('feature')) {
+    if (!featureRequested()) {
         return;
     }
     if (!isUrlShortener()) {

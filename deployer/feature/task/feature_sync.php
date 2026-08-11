@@ -102,7 +102,7 @@ function resolveDatabaseHostToIp(string $hostname): void
 
 
 task('feature:wait_for_database', function () {
-    if ((has('feature_setup') && !get('feature_setup')) || !input()->getOption('feature')) return;
+    if ((has('feature_setup') && !get('feature_setup')) || !featureRequested()) return;
     waitForDatabaseHost();
 })
     ->select('type=feature-branch-deployment')
@@ -113,7 +113,7 @@ task('feature:wait_for_database', function () {
 
 task('feature:sync', function () {
 
-    if ((has('feature_setup') && !get('feature_setup')) || !input()->getOption('feature')) return;
+    if ((has('feature_setup') && !get('feature_setup')) || !featureRequested()) return;
 
     $feature = initFeature();
     $synced = false;

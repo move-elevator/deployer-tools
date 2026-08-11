@@ -11,7 +11,7 @@ task('dev:sync', function () {
         if (host('stage')->get('labels')['type'] === 'feature-branch-deployment') {
             on(host('stage'), function () {
                 $currentBranch = runLocally('git branch --show-current');
-                $target = !is_null(input()->getOption('feature')) ? input()->getOption('feature') : askChoice('Please select a sync origin', array_merge(
+                $target = featureRequested() ? input()->getOption('feature') : askChoice('Please select a sync origin', array_merge(
                     ["[current] ($currentBranch)", "[prod]"],
                     array_map(function ($array) {
                         return $array[2];

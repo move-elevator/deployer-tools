@@ -7,7 +7,7 @@ require_once(__DIR__ . '/../../notification/task/ms_teams.php');
 
 task('feature:notify', function () {
 
-    if ((has('feature_setup') && !get('feature_setup')) || !input()->getOption('feature')) return;
+    if ((has('feature_setup') && !get('feature_setup')) || !featureRequested()) return;
     checkVerbosity();
 
     set('public_url', get('public_urls')[0]);

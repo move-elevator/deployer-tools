@@ -8,12 +8,25 @@ require_once(__DIR__ . '/../../functions.php');
 
 task('feature:init', function () {
     checkVerbosity();
+    if (!featureRequested()) {
+        debug('No feature given, staying on the base instance');
+        return;
+    }
     // extend deploy path / public url
     initFeature();
 })
     ->select('type=feature-branch-deployment')
     ->once()
     ->desc('Initialize a feature branch');
+
+task('feature:select', function () {
+    checkVerbosity();
+    // extend deploy path / public url, asking for the feature if none was given
+    initFeature();
+})
+    ->select('type=feature-branch-deployment')
+    ->once()
+    ->desc('Select a feature branch and initialize it');
 
 
 /**
@@ -36,9 +49,12 @@ function initFeature(?string $feature = null): ?string
 
     prepareDeployerConfiguration();
     // use feature variable or feature input option or ask for feature branch
-    $feature = $feature ?: (!is_null(input()->getOption('feature')) ? input()->getOption('feature') : askChoice('Please select a feature branch', array_map(function ($array) {
-        return $array[2];
-    }, listFeatureInstances())));
+    // (?: would discard a caller-provided "0", which is a valid instance name)
+    if (null === $feature || '' === trim($feature)) {
+        $feature = featureRequested() ? input()->getOption('feature') : askChoice('Please select a feature branch', array_map(function ($array) {
+            return $array[2];
+        }, listFeatureInstances()));
+    }
     set('feature', $feature);
 
     if (isUrlShortener()) {
