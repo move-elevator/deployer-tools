@@ -19,7 +19,8 @@ final class FeatureUtility
      * databases reachable.
      *
      * @throws \InvalidArgumentException if a non-blank identifier normalizes to an empty
-     *                                   name, which would silently address the base instance
+     *                                   name or to a relative path segment, either of which
+     *                                   would silently address the base instance
      */
     public static function normalize(?string $feature): string
     {
@@ -31,11 +32,11 @@ final class FeatureUtility
 
         $normalized = str_replace(['/', '\\'], '-', $feature);
         $normalized = (string) preg_replace('/[^A-Za-z0-9_\-.]/', '', $normalized);
-        $normalized = trim($normalized, '-.');
 
-        if ('' === $normalized) {
+        // "" would resolve to the base instance, "." and ".." to it or its parent
+        if ('' === trim($normalized, '.')) {
             throw new \InvalidArgumentException(
-                sprintf('The feature name "%s" contains no usable characters.', $feature)
+                sprintf('The feature name "%s" does not yield a usable instance name.', $feature)
             );
         }
 
