@@ -3,6 +3,7 @@
 namespace Deployer;
 
 use Deployer\Exception\RunException;
+use MoveElevator\DeployerTools\Utility\FeatureUtility;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -53,6 +54,26 @@ function featureRequested(): bool
     $feature = input()->getOption('feature');
 
     return null !== $feature && '' !== trim((string)$feature);
+}
+
+/**
+ * Normalize a feature identifier into the flat instance name used for the deploy
+ * directory, the public url segment, the url shortener symlink and the database name.
+ *
+ * Branch names may carry path separators ("feature/ABC-12"), which would otherwise
+ * nest the instance directory and break listing, cleanup and deletion. Identifiers
+ * that already consist of allowed characters only are returned unchanged.
+ *
+ * @param ?string $feature
+ * @return string
+ */
+function getFeatureName(?string $feature = null): string
+{
+    if (null === $feature || '' === trim($feature)) {
+        $feature = featureRequested() ? (string)input()->getOption('feature') : '';
+    }
+
+    return FeatureUtility::normalize($feature);
 }
 
 /**

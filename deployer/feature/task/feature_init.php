@@ -55,6 +55,8 @@ function initFeature(?string $feature = null): ?string
             return $array[2];
         }, listFeatureInstances()));
     }
+    // branch names may contain path separators ("feature/ABC-12"), the instance name must stay flat
+    $feature = getFeatureName($feature);
     set('feature', $feature);
 
     if (isUrlShortener()) {

@@ -38,7 +38,8 @@ task('dev:sync', function () {
     if ($target !== 'prod' && $target !== 'stage') {
         $dbSyncToolSync = get('dev_db_sync_tool_default_sync');
 
-        $dbSyncToolOriginPath = str_replace('<feature>', $target, get('dev_db_sync_tool_origin_path'));
+        // the remote path carries the instance name, not the raw branch name
+        $dbSyncToolOriginPath = str_replace('<feature>', getFeatureName($target), get('dev_db_sync_tool_origin_path'));
         $additionalOptions = "--origin-path $dbSyncToolOriginPath";
     } else {
         $dbSyncToolSync = $target === 'prod' ? get('dev_db_sync_tool_prod_sync') : get('dev_db_sync_tool_default_sync');

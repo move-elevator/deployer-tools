@@ -67,7 +67,8 @@ function renderRemoteTemplates(): void
 {
     debug('Rendering remote template');
     $databaseName = DbUtility::getDatabaseManager()->getDatabaseName();
-    $feature = input()->getOption('feature');
+    // the normalized name, matching the instance directory and url segment
+    $feature = get('feature');
     $templates = get('feature_templates');
 
     if (!$templates) {
@@ -143,14 +144,4 @@ function uploadTemplate($localTemplate, $remoteTarget, $arguments): void {
     // upload template to remote
     upload($temporaryFileName,get('deploy_path') . $remoteTarget);
     unlink($temporaryFileName);
-}
-
-/**
- * @param ?string $feature
- * @return array|string|string[]|null
- */
-function getFeatureName(?string $feature = null) {
-    $feature = $feature ?: input()->getOption('feature');
-
-    return preg_replace('/[^A-Za-z0-9\_\-.]/', '', $feature);
 }
