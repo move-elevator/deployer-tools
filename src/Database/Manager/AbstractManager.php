@@ -52,8 +52,11 @@ abstract class AbstractManager
 
     public function getFeatureName(?string $feature = null): string
     {
-        $feature = $feature ?: input()->getOption('feature');
+        // only null and blank count as absent, "0" is a valid instance name
+        if (null === $feature || '' === trim($feature)) {
+            $feature = (string) input()->getOption('feature');
+        }
 
-        return FeatureUtility::normalize((string) $feature);
+        return FeatureUtility::normalize($feature);
     }
 }
