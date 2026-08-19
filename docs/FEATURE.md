@@ -55,6 +55,21 @@ The `feature:setup` command represent the initialization of a new feature branch
 $ vendor/bin/dep feature:setup stage --feature=TEST-01
 ```
 
+The `--feature=` value may be a full branch name. Path separators are replaced by a hyphen so the instance stays a single flat directory, url segment and database suffix:
+
+| `--feature=`         | instance name        |
+|----------------------|----------------------|
+| `TEST-01`            | `TEST-01`            |
+| `feature/TEST-01`    | `feature-TEST-01`    |
+| `bugfix/TEST-01`     | `bugfix-TEST-01`     |
+| `release/1.2.0`      | `release-1.2.0`      |
+
+Names that already consist of letters, digits, `_`, `-` and `.` are used unchanged, so existing instances and their databases stay reachable. Since the branch prefix is kept, `feature/TEST-01` and `bugfix/TEST-01` remain two separate instances. The same normalization is applied by `feature:cleanup` when it compares remote git branches with the deployed instances.
+
+A `--feature=` value that yields no usable name is rejected instead of falling back to the base instance, which the feature scaffolding would otherwise overwrite. That covers values without any allowed character as well as `.` and `..`.
+
+> Because the separator is replaced rather than encoded, `feature/TEST-01` and a branch literally named `feature-TEST-01` map to the same instance. Do not use both spellings for different branches in one project.
+
 The recipe already wires this task into the deploy flow, together with a `feature:init` before `deploy:info`. That ordering matters: `deploy:info` resolves `{{release_name}}` and deployer caches the result for the rest of the run, so the feature instance has to be known before it runs. Do not hook `feature:setup` any earlier yourself.
 
 > Upgrading: if your `deploy.php` carries a `before('deploy:info', 'feature:init')` (or an equivalent `feature:setup` hook) as a workaround for that ordering, remove it — the recipe registers it now and the hook would otherwise run twice.
@@ -75,7 +90,7 @@ This configuration defines the local template file as well as the remote target 
 | `DEPLOYER_CONFIG_DATABASE_PORT` | default is `3306`, overwrite with deployer `set('database_port', '3306');`           |
 | `DEPLOYER_CONFIG_DATABASE_USER` | should be defined with `database_user` in the host configuration                     |
 | `DEPLOYER_CONFIG_DATABASE_NAME` | will be dynamically generated                                                        |
-| `DEPLOYER_CONFIG_FEATURE_NAME`  | will be provide with the `--feature=` command line argument                          |
+| `DEPLOYER_CONFIG_FEATURE_NAME`  | the normalized instance name derived from the `--feature=` command line argument     |
 | `DEPLOYER_CONFIG_FEATURE_URL`   | will be dynamically generated                                                        |
 | `DEPLOYER_CONFIG_FEATURE_PATH`  | will be dynamically generated                                                        |
 

@@ -11,7 +11,6 @@ use function Deployer\get;
 use function Deployer\set;
 use function Deployer\has;
 use function Deployer\run;
-use function Deployer\input;
 use function Deployer\upload;
 use function Deployer\runExtended;
 use function Deployer\test;
@@ -50,7 +49,7 @@ class Simple extends AbstractManager implements ManagerInterface
         debug('Deleting database');
         $this->ensureDatabasePoolExists();
         $this->initDatabaseConfiguration(feature: $feature);
-        $this->assignmentManager->removeAssignment($feature);
+        $this->assignmentManager->removeAssignment($this->getFeatureName($feature));
         $this->run($this->generateDropTablesQuery($this->getDatabaseName($feature)));
     }
 
@@ -78,8 +77,7 @@ class Simple extends AbstractManager implements ManagerInterface
 
     public function getDatabaseName(?string $feature = null): string
     {
-        $feature = $feature ?: input()->getOption('feature');
-        $databaseAssignment = $this->assignmentManager->getAssignment($feature);
+        $databaseAssignment = $this->assignmentManager->getAssignment($this->getFeatureName($feature));
 
         if (!$databaseAssignment) {
             return '';
@@ -115,7 +113,7 @@ class Simple extends AbstractManager implements ManagerInterface
     {
         $pool = get('database_pool');
         if (!$database) {
-            $database = $this->assignmentManager->getAssignment($feature ?: $this->getFeatureName());
+            $database = $this->assignmentManager->getAssignment($this->getFeatureName($feature));
         }
 
         if (!isset($pool[$database])) {

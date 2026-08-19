@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MoveElevator\DeployerTools\Database\Manager;
 
 use MoveElevator\DeployerTools\Database\Exception\DatabaseException;
+use MoveElevator\DeployerTools\Utility\FeatureUtility;
 use MoveElevator\DeployerTools\Utility\VarUtility;
 
 use function Deployer\get;
@@ -41,16 +42,21 @@ abstract class AbstractManager
      */
     public function getDatabaseName(?string $feature = null): string
     {
-        $feature = $feature ?: input()->getOption('feature');
-        $project = get('project');
-        return substr($this->getFeatureName("{$project}--{$feature}"), 0, 63);
+        // both parts are normalized separately, so the "--" separator survives
+        $project = FeatureUtility::normalize((string) get('project'));
+        $feature = $this->getFeatureName($feature);
+
+        return substr($project . '--' . $feature, 0, 63);
     }
 
 
     public function getFeatureName(?string $feature = null): string
     {
-        $feature = $feature ?: input()->getOption('feature');
+        // only null and blank count as absent, "0" is a valid instance name
+        if (null === $feature || '' === trim($feature)) {
+            $feature = (string) input()->getOption('feature');
+        }
 
-        return preg_replace('/[^A-Za-z0-9\_\-.]/', '', (string) $feature);
+        return FeatureUtility::normalize($feature);
     }
 }

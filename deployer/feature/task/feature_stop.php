@@ -33,7 +33,7 @@ task('feature:stop', function () {
  */
 function deleteFeature(?string $feature = null, $needConfirmation = false): void
 {
-    $feature = $feature ?: input()->getOption('feature');
+    $feature = getFeatureName($feature);
 
     $filesRemoveCommand = "rm -rf " . get('deploy_path');
 
