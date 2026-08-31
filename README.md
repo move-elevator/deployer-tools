@@ -1,5 +1,7 @@
 <div align="center">
 
+![icon](icon.png)
+
 # Deployer Tools
 
 [![CGL](https://img.shields.io/github/actions/workflow/status/move-elevator/deployer-tools/cgl.yml?label=cgl&logo=github)](https://github.com/move-elevator/deployer-tools/actions/workflows/cgl.yml)
