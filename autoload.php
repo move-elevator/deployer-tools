@@ -29,6 +29,12 @@ require_once(__DIR__ . '/deployer/sync/config/set.php');
 require_once(__DIR__ . '/deployer/sync/task/database_backup.php');
 
 /*
+ * backup
+ */
+require_once(__DIR__ . '/deployer/backup/config/set.php');
+require_once(__DIR__ . '/deployer/backup/task/backup_exclude_cache.php');
+
+/*
  * security
  */
 require_once(__DIR__ . '/deployer/security/config/set.php');

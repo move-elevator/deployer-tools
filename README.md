@@ -65,6 +65,7 @@ Read the [documentation](docs/TYPO3.md) for detailed installation instructions a
 - [Development](docs/DEV.md)
 - [Debug helper](docs/DEBUG.md)
 - [Requirements](docs/REQUIREMENTS.md)
+- [Backup exclusion](docs/BACKUP.md)
 
 
 ## 💛 Acknowledgements
