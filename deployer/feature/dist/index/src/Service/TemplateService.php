@@ -43,12 +43,24 @@ class TemplateService
     public function renderDiskSpace(IOService $ioService): string
     {
         $status = $ioService->getDiskSpaceStatus();
-        $warning = $status !== 'green' ? " <span class='status $status' data-tooltip='Disk usage is above " . $ioService->getDiskSpaceThreshold() . "%'>Low disk space</span>" : '';
+        $info = $ioService->getDiskFullSpacePercent() . "% used (" . $ioService->getDiskTotalFree() . " GB free of " . $ioService->getDiskTotalSpace() . " GB)";
+        if ($status !== 'green') {
+            $info .= ". Low disk space, above " . $ioService->getDiskSpaceThreshold() . "%";
+        }
+        $info = htmlspecialchars($info, ENT_QUOTES);
 
         return "<div class='disk-space'>" .
-            "<progress style='color:" . $ioService->getDiskSpaceColor() . "' value='" . $ioService->getDiskFullSpacePercent() . "' max='100'></progress>" .
-            "<small>" . $ioService->getDiskFullSpacePercent() . "% used (" . $ioService->getDiskTotalFree() . " GB free of " . $ioService->getDiskTotalSpace() . " GB)$warning</small>" .
+            "<button type='button' class='disk-space-icon' style='background-color:" . $ioService->getDiskSpaceColor() . "' data-tooltip='$info' aria-label='Disk space: $info'>" .
+            $this->getDiskIcon() .
+            "</button>" .
             "</div>";
+    }
+
+    private function getDiskIcon(): string
+    {
+        return "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='16' height='16'>" .
+            "<path fill='#fff' d='M12,3C7.58,3,4,4.79,4,7v10c0,2.21,3.58,4,8,4s8-1.79,8-4V7C20,4.79,16.42,3,12,3z M12,5c3.87,0,6,1.5,6,2c0,0.5-2.13,2-6,2S6,7.5,6,7C6,6.5,8.13,5,12,5z M18,17c0,0.5-2.13,2-6,2s-6-1.5-6-2v-2.35C7.61,15.5,9.72,16,12,16s4.39-0.5,6-1.35V17z M18,12c0,0.5-2.13,2-6,2s-6-1.5-6-2V9.65C7.61,10.5,9.72,11,12,11s4.39-0.5,6-1.35V12z'/>" .
+            "</svg>";
     }
 
     /**
