@@ -10,11 +10,16 @@ task('backup:exclude_cache', function () {
     foreach (get('backup_exclude_dirs') as $dir) {
         $dir = trim($dir, '/');
 
-        if (!test("[ -d {{ release_path }}/$dir ]")) {
+        if ('' === $dir || in_array('..', explode('/', $dir), true) || in_array('.', explode('/', $dir), true)) {
+            warning("Skipping invalid backup_exclude_dirs entry: \"$dir\"");
             continue;
         }
 
-        run("echo '" . CACHEDIR_TAG_SIGNATURE . "' > {{ release_path }}/$dir/CACHEDIR.TAG");
+        if (!test("[ -d '{{ release_path }}/$dir' ]")) {
+            continue;
+        }
+
+        run("echo '" . CACHEDIR_TAG_SIGNATURE . "' > '{{ release_path }}/$dir/CACHEDIR.TAG'");
         debug("Tagged {{ release_path }}/$dir as excluded from backups (CACHEDIR.TAG)");
     }
 })
