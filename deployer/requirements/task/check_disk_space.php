@@ -56,9 +56,11 @@ function detectDatabaseDatadir(array $credentials): ?string
         return null;
     }
 
-    // Output format: "datadir\t/var/lib/mysql/"
-    $columns = preg_split('/\s+/', $output);
-    $path = is_array($columns) ? ($columns[1] ?? null) : null;
+    // Output format: "datadir\t/var/lib/mysql/", possibly preceded by mysql client warning lines
+    // on stderr (merged into stdout by runMysqlQuery()), so only the last line is relevant.
+    $lines = explode("\n", $output);
+    $columns = explode("\t", trim((string) end($lines)));
+    $path = $columns[1] ?? null;
 
     return ('' !== $path && null !== $path) ? $path : null;
 }
