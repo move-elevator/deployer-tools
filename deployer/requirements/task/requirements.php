@@ -16,6 +16,7 @@ task('requirements:check', [
     'requirements:check:user',
     'requirements:check:env',
     'requirements:check:eol',
+    'requirements:check:disk_space',
     'requirements:check:summary',
 ])->desc('Check server requirements');
 

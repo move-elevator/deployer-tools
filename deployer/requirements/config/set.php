@@ -20,6 +20,7 @@ set('requirements_check_env_enabled', true);
 set('requirements_check_eol_enabled', true);
 set('requirements_check_database_grants_enabled', true);
 set('requirements_check_health_enabled', true);
+set('requirements_check_disk_space_enabled', true);
 
 // Locales
 set('requirements_locales', ['de_DE.utf8', 'en_US.utf8']);
@@ -112,6 +113,13 @@ set('requirements_eol_api_timeout', 5);
 
 // Health check
 set('requirements_health_url', 'http://localhost');
+
+// Disk space (percent used; webspace path defaults to the deploy path)
+set('requirements_disk_space_warn_percent', 80);
+set('requirements_disk_space_fail_percent', 95);
+set('requirements_disk_space_webspace_path', function (): string {
+    return has('deploy_path') ? get('deploy_path') : '.';
+});
 
 // User / permissions
 set('requirements_user_group', 'www-data');

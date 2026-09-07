@@ -134,5 +134,14 @@ task('requirements:list', function (): void {
         }
     }
 
+    // Disk Space
+    if (get('requirements_check_disk_space_enabled')) {
+        writeln('');
+        writeln('<fg=yellow;options=bold>Disk Space</>');
+        writeln(sprintf('  Warn:   >= %d%% used', (int) get('requirements_disk_space_warn_percent')));
+        writeln(sprintf('  Fail:   >= %d%% used', (int) get('requirements_disk_space_fail_percent')));
+        writeln('  Checked: webspace path, and database data directory when the DB host is local');
+    }
+
     writeln('');
 })->desc('List server requirements');
