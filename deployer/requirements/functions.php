@@ -545,7 +545,7 @@ function runMysqlQuery(array $credentials, string $query): string
 function checkDiskSpaceAtPath(string $label, string $path, int $warnPercent, int $failPercent): void
 {
     try {
-        $output = trim(run('df -kP ' . escapeshellarg($path) . ' | tail -1'));
+        $output = trim(run('df -kP ' . escapeshellarg($path) . ' | tail -n 1'));
     } catch (RunException) {
         addRequirementRow($label, REQUIREMENT_SKIP, "Could not read disk usage for $path");
 
