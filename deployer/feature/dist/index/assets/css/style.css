@@ -71,6 +71,13 @@ kbd[data-tooltip], .status[data-tooltip]  {
 progress {
     height: .125rem;
 }
+.disk-space {
+    padding: .25rem 1rem 0;
+}
+.disk-space small {
+    display: block;
+    color: var(--muted-color, #666);
+}
 h3 {
     width: max-content;
 }

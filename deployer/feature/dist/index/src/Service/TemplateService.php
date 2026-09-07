@@ -37,6 +37,21 @@ class TemplateService
     }
 
     /**
+     * @param \MoveElevator\FeatureIndex\Service\IOService $ioService
+     * @return string
+     */
+    public function renderDiskSpace(IOService $ioService): string
+    {
+        $status = $ioService->getDiskSpaceStatus();
+        $warning = $status !== 'green' ? " <span class='status $status' data-tooltip='Disk usage is above " . $ioService->getDiskSpaceThreshold() . "%'>Low disk space</span>" : '';
+
+        return "<div class='disk-space'>" .
+            "<progress style='color:" . $ioService->getDiskSpaceColor() . "' value='" . $ioService->getDiskFullSpacePercent() . "' max='100'></progress>" .
+            "<small>" . $ioService->getDiskFullSpacePercent() . "% used (" . $ioService->getDiskTotalFree() . " GB free of " . $ioService->getDiskTotalSpace() . " GB)$warning</small>" .
+            "</div>";
+    }
+
+    /**
      * @param string $links
      * @return string
      */

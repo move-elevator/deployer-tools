@@ -49,6 +49,35 @@ class IOService
         return round(100 - $freeSpacePercent, 2);
     }
 
+    /**
+     * Mirrors the warn/fail thresholds of the requirements recipe's disk space check
+     * (requirements_disk_space_warn_percent/requirements_disk_space_fail_percent, 80/95),
+     * ordered by descending threshold so the first matching level wins.
+     */
+    private const DISK_SPACE_LEVELS = [
+        'red' => ['threshold' => 95, 'color' => '#D84315'],
+        'yellow' => ['threshold' => 80, 'color' => '#F9A825'],
+        'green' => ['threshold' => 0, 'color' => '#33691E'],
+    ];
+
+    public function getDiskSpaceStatus(): string {
+        $percent = $this->getDiskFullSpacePercent();
+        foreach (self::DISK_SPACE_LEVELS as $status => $level) {
+            if ($percent >= $level['threshold']) {
+                return $status;
+            }
+        }
+        return 'green';
+    }
+
+    public function getDiskSpaceColor(): string {
+        return self::DISK_SPACE_LEVELS[$this->getDiskSpaceStatus()]['color'];
+    }
+
+    public function getDiskSpaceThreshold(): int {
+        return self::DISK_SPACE_LEVELS[$this->getDiskSpaceStatus()]['threshold'];
+    }
+
     public function directoryExists(string $path, bool $forceCreate = false): bool
     {
         if (!is_dir($path)) {
