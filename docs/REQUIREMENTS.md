@@ -120,6 +120,27 @@ Checks installed PHP and database (MariaDB/MySQL) versions against the [endoflif
 
 The warning threshold is configurable (default: 6 months before EOL).
 
+### Disk space
+
+Checks free disk space (via `df`) against two used-space thresholds:
+
+| Condition | Status |
+|-----------|--------|
+| Used space >= fail threshold (default: 95%) | FAIL |
+| Used space >= warn threshold (default: 80%) | WARN |
+| Otherwise | OK |
+
+Two locations are checked:
+
+- **Webspace**: the configured `requirements_disk_space_webspace_path` (defaults to `deploy_path`).
+- **Database**: only when the resolved database host (see "Database grants" credential resolution above) is `127.0.0.1`/`localhost`, i.e. reachable from the deploy target. The data directory is read via `SHOW VARIABLES LIKE 'datadir'`. If the database lives on a separate host, this check is skipped, since disk usage on an arbitrary remote host cannot be read via SSH from the deploy target.
+
+Like every other check in this recipe, FAIL/WARN are reported in the summary table only — they do not stop the `requirements:check` command itself. To block a deployment on disk space, wire the check into the deploy pipeline in the consuming project, e.g.:
+
+```php
+before('deploy:prepare', 'requirements:check:disk_space');
+```
+
 ## Health check
 
 A standalone task that verifies critical services are running on the target host. This is useful as a quick smoke test before or after deployment.
@@ -201,6 +222,12 @@ set('requirements_check_database_grants_enabled', true);
 // Health check
 set('requirements_check_health_enabled', true);
 set('requirements_health_url', 'https://example.com');
+
+// Disk space check
+set('requirements_check_disk_space_enabled', true);
+set('requirements_disk_space_warn_percent', 80);
+set('requirements_disk_space_fail_percent', 95);
+set('requirements_disk_space_webspace_path', '/var/www/html');
 ```
 
 ## Extending with custom checks

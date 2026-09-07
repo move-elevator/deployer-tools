@@ -518,6 +518,77 @@ function resolveDatabaseCredentials(): ?array
 }
 
 /**
+ * Run a query against the remote database via the `mysql`/`mariadb` CLI client, with the password masked in output.
+ *
+ * @param array{user: string, password: string, host: string, port: int} $credentials
+ *
+ * @throws RunException if the connection or query fails
+ */
+function runMysqlQuery(array $credentials, string $query): string
+{
+    $mysqlBin = has('mysql') ? get('mysql') : 'mysql';
+
+    return run(sprintf(
+        '%s --connect-timeout=5 -u %s -p%s -h %s -P %d -N -e %s 2>&1',
+        escapeshellarg($mysqlBin),
+        escapeshellarg($credentials['user']),
+        "'%secret%'",
+        escapeshellarg($credentials['host']),
+        $credentials['port'],
+        escapeshellarg($query)
+    ), secret: $credentials['password']);
+}
+
+/**
+ * Run `df` against a path on the remote host and record a requirement row based on used-space thresholds.
+ */
+function checkDiskSpaceAtPath(string $label, string $path, int $warnPercent, int $failPercent): void
+{
+    try {
+        $output = trim(run('df -kP ' . escapeshellarg($path) . ' | tail -n 1'));
+    } catch (RunException) {
+        addRequirementRow($label, REQUIREMENT_SKIP, "Could not read disk usage for $path");
+
+        return;
+    }
+
+    $columns = preg_split('/\s+/', $output);
+
+    if (!is_array($columns) || count($columns) < 5) {
+        addRequirementRow($label, REQUIREMENT_SKIP, "Unexpected df output for $path");
+
+        return;
+    }
+
+    $usedPercent = (int) rtrim($columns[4], '%');
+    $availableHuman = formatKilobytes((int) $columns[3]);
+
+    $status = match (true) {
+        $usedPercent >= $failPercent => REQUIREMENT_FAIL,
+        $usedPercent >= $warnPercent => REQUIREMENT_WARN,
+        default => REQUIREMENT_OK,
+    };
+
+    addRequirementRow($label, $status, "{$usedPercent}% used, $availableHuman free ($path)");
+}
+
+/**
+ * Format a `df -k` kilobyte value as a human-readable size.
+ */
+function formatKilobytes(int $kilobytes): string
+{
+    if ($kilobytes >= 1024 * 1024) {
+        return round($kilobytes / (1024 * 1024), 1) . 'G';
+    }
+
+    if ($kilobytes >= 1024) {
+        return round($kilobytes / 1024, 1) . 'M';
+    }
+
+    return $kilobytes . 'K';
+}
+
+/**
  * Parse SHOW GRANTS output and check required grants on global level (*.*).
  *
  * @param string $grantsOutput Raw output from SHOW GRANTS FOR CURRENT_USER()

@@ -49,19 +49,10 @@ function checkRootGrants(): void
         return;
     }
 
-    $mysqlBin = has('mysql') ? get('mysql') : 'mysql';
     $connectInfo = sprintf('%s@%s:%d', $credentials['user'], $credentials['host'], $credentials['port']);
 
     try {
-        $output = run(sprintf(
-            '%s --connect-timeout=5 -u %s -p%s -h %s -P %d -N -e %s 2>&1',
-            escapeshellarg($mysqlBin),
-            escapeshellarg($credentials['user']),
-            "'%secret%'",
-            escapeshellarg($credentials['host']),
-            $credentials['port'],
-            escapeshellarg('SHOW GRANTS FOR CURRENT_USER()')
-        ), secret: $credentials['password']);
+        $output = runMysqlQuery($credentials, 'SHOW GRANTS FOR CURRENT_USER()');
     } catch (RunException) {
         addRequirementRow('Database: connectivity', REQUIREMENT_FAIL, "Cannot connect as $connectInfo");
 
