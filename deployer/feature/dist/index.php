@@ -28,7 +28,7 @@ $config = $configReader->initConfig();
         </style>
     </head>
     <body>
-        <progress style="color:red" value="<?php echo $ioService->getDiskFullSpacePercent() ?>" max="100"></progress>
+        <?php echo $templateService->renderDiskSpace($ioService) ?>
         <header class="container" style="padding-bottom: 0">
             <nav>
                 <ul>
