@@ -132,6 +132,72 @@ function commandExistLocally(string $command): bool
 }
 
 /**
+ * Checks whether a local path is executable. Unlike commandExistLocally()/hash (built
+ * for PATH lookups), this reliably resolves a relative path containing a slash, e.g.
+ * vendor/bin/sync-tool.
+ */
+function isExecutableLocally(string $path): bool
+{
+    return testLocally("[ -x $path ]");
+}
+
+/**
+ * Resolves the sync tool binary to use: prefers the Composer-installed php-sync-tool
+ * (https://github.com/konradmichalik/php-sync-tool) when present locally, falling back
+ * to the legacy PATH-installed Python tool (db-sync-tool/file-sync-tool) otherwise.
+ *
+ * Lets each downstream project migrate independently by running
+ * `composer require --dev konradmichalik/php-sync-tool` - no deploy.php opt-in needed.
+ */
+function resolveSyncTool(string $legacyBinary, string $phpBinary = 'vendor/bin/sync-tool'): string
+{
+    return isExecutableLocally($phpBinary) ? $phpBinary : $legacyBinary;
+}
+
+/**
+ * Whether a resolved sync tool binary is php-sync-tool rather than the legacy tool:
+ * a path containing a slash, as opposed to a bare PATH command.
+ */
+function usingPhpSyncTool(string $resolvedBinary): bool
+{
+    return str_contains($resolvedBinary, '/');
+}
+
+/**
+ * Checks whether a resolved sync tool binary is actually available locally: a path
+ * (php-sync-tool) via isExecutableLocally(), a bare PATH command (the legacy tool) via
+ * commandExistLocally().
+ */
+function syncToolAvailableLocally(string $binary): bool
+{
+    return usingPhpSyncTool($binary)
+        ? isExecutableLocally($binary)
+        : commandExistLocally($binary);
+}
+
+/**
+ * Resolves the sync tool binary and verifies it is actually available locally, or
+ * throws. Used by the dev:* tasks, which have no "disabled" concept and must hard-fail
+ * rather than silently skip when the tool is missing.
+ *
+ * @throws \RuntimeException if db_sync_tool was disabled or is not available locally
+ */
+function requireSyncTool(string $action): string
+{
+    $dbSyncTool = get('db_sync_tool');
+
+    if (false === $dbSyncTool) {
+        throw new \RuntimeException("db_sync_tool was disabled, cannot $action.");
+    }
+
+    if (!syncToolAvailableLocally($dbSyncTool)) {
+        throw new \RuntimeException("Sync tool \"$dbSyncTool\" not available locally.");
+    }
+
+    return $dbSyncTool;
+}
+
+/**
  * Runs a remote command with the possibility to overwrite the default command options
  */
 function runExtended(string $command, ?array $options = [], ?int $timeout = null, ?int $idle_timeout = null, ?string $secret = null, ?array $env = null, ?bool $real_time_output = null, ?bool $no_throw = null): string

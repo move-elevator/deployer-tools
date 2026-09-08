@@ -6,16 +6,19 @@ task('database:backup', function () {
 
     $optionalVerbose = isVerbose() ? '-v' : '';
 
-    if (false === get('db_sync_tool')) {
+    $dbSyncTool = get('db_sync_tool');
+
+    if (false === $dbSyncTool) {
         debug('Skipping database backup, db_sync_tool was disabled');
         return;
     }
 
-    if (commandExistLocally("{{db_sync_tool}}")) {
+    if (syncToolAvailableLocally($dbSyncTool)) {
+        $useRsync = usingPhpSyncTool($dbSyncTool) ? '' : '--use-rsync';
         info('Generating a database backup');
-        runLocally("{{db_sync_tool}} -f {{sync_database_backup_config}} --use-rsync -y $optionalVerbose");
+        runLocally("$dbSyncTool -f {{sync_database_backup_config}} $useRsync -y $optionalVerbose");
     } else {
-        debug("Skipping database backup, {{db_sync_tool}} not available");
+        debug("Skipping database backup, $dbSyncTool not available");
     }
 
 })

@@ -23,8 +23,14 @@ set('feature_directory_path', '.fbd/');
  * Feature Sync
  */
 #set('feature_sync_config', null);
-set('db_sync_tool', 'db_sync_tool'); # set to false, to disable db sync
-set('file_sync_tool', 'file_sync_tool'); # set to false, to disable file sync
+// resolves to vendor/bin/sync-tool (php-sync-tool) when available locally, falling back
+// to the legacy db_sync_tool PATH binary; set to false, to disable db sync
+set('db_sync_tool', function () {
+    return resolveSyncTool('db_sync_tool');
+});
+// legacy-only: php-sync-tool syncs files via --with-files on the db_sync_tool call above,
+// so this is unused once db_sync_tool resolves to it; set to false, to disable file sync
+set('file_sync_tool', 'file_sync_tool');
 
 
 set('feature_sync_target_path', null);
