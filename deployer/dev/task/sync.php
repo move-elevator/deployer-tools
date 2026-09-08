@@ -50,7 +50,7 @@ task('dev:sync', function () {
     $dbSyncTool = requireSyncTool('sync');
 
     $dbSyncToolConfigPath = get('dev_db_sync_tool_config_path');
-    runLocally("$dbSyncTool -f $dbSyncToolConfigPath/$dbSyncToolSync -y $additionalOptions", ['real_time_output' => true]);
+    runLocally(escapeshellarg($dbSyncTool) . " -f $dbSyncToolConfigPath/$dbSyncToolSync -y $additionalOptions", ['real_time_output' => true]);
     info("💽 Database from $target synced successfully");
 })
     ->desc('Sync database with db-sync-tool');

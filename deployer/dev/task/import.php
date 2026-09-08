@@ -11,6 +11,6 @@ task('dev:import', function () {
     $dbSyncTool = requireSyncTool('import');
 
     $dbSyncToolConfigPath = get('dev_db_sync_tool_config_path');
-    runLocally("$dbSyncTool -f $dbSyncToolConfigPath/$dbSyncToolSync -y -i $dbDumpDir/$dbDumpFilename.sql", ['real_time_output' => true]);
+    runLocally(escapeshellarg($dbSyncTool) . " -f $dbSyncToolConfigPath/$dbSyncToolSync -y -i $dbDumpDir/$dbDumpFilename.sql", ['real_time_output' => true]);
 })
     ->desc('Sync database with drush');

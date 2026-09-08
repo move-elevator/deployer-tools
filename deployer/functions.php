@@ -138,7 +138,7 @@ function commandExistLocally(string $command): bool
  */
 function isExecutableLocally(string $path): bool
 {
-    return testLocally("[ -x $path ]");
+    return testLocally('[ -x ' . escapeshellarg($path) . ' ]');
 }
 
 /**

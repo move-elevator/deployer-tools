@@ -16,7 +16,7 @@ task('database:backup', function () {
     if (syncToolAvailableLocally($dbSyncTool)) {
         $useRsync = usingPhpSyncTool($dbSyncTool) ? '' : '--use-rsync';
         info('Generating a database backup');
-        runLocally("$dbSyncTool -f {{sync_database_backup_config}} $useRsync -y $optionalVerbose");
+        runLocally(escapeshellarg($dbSyncTool) . " -f {{sync_database_backup_config}} $useRsync -y $optionalVerbose");
     } else {
         debug("Skipping database backup, $dbSyncTool not available");
     }

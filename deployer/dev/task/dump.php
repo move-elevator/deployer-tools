@@ -26,6 +26,6 @@ task('dev:dump', function () {
     $dumpLocationOptions = usingPhpSyncTool($dbSyncTool) ? '' : "-kd $dbDumpDir -dn $dbDumpFilename";
 
     $dbSyncToolConfigPath = get('dev_db_sync_tool_config_path');
-    runLocally("$dbSyncTool -f $dbSyncToolConfigPath/$dbSyncToolSync -y $dumpLocationOptions $additionalOptions", ['real_time_output' => true]);
+    runLocally(escapeshellarg($dbSyncTool) . " -f $dbSyncToolConfigPath/$dbSyncToolSync -y $dumpLocationOptions $additionalOptions", ['real_time_output' => true]);
 })
     ->desc('Sync database with drush');
