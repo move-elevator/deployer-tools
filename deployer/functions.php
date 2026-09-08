@@ -155,22 +155,24 @@ function resolveSyncTool(string $legacyBinary, string $phpBinary = 'vendor/bin/s
 }
 
 /**
- * Whether a resolved sync tool binary is php-sync-tool rather than the legacy tool:
- * a path containing a slash, as opposed to a bare PATH command.
+ * Whether a resolved sync tool binary is php-sync-tool rather than the legacy tool.
+ * Compared against the known php-sync-tool path, not path-shape - a downstream
+ * project's legacy binary can itself be configured as an absolute or relative path,
+ * which would otherwise be misclassified.
  */
-function usingPhpSyncTool(string $resolvedBinary): bool
+function usingPhpSyncTool(string $resolvedBinary, string $phpBinary = 'vendor/bin/sync-tool'): bool
 {
-    return str_contains($resolvedBinary, '/');
+    return $resolvedBinary === $phpBinary;
 }
 
 /**
  * Checks whether a resolved sync tool binary is actually available locally: a path
- * (php-sync-tool) via isExecutableLocally(), a bare PATH command (the legacy tool) via
+ * (containing a slash) via isExecutableLocally(), a bare PATH command via
  * commandExistLocally().
  */
 function syncToolAvailableLocally(string $binary): bool
 {
-    return usingPhpSyncTool($binary)
+    return str_contains($binary, '/')
         ? isExecutableLocally($binary)
         : commandExistLocally($binary);
 }
