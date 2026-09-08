@@ -39,7 +39,13 @@ labels:
    type: feature-branch-deployment
 ```
 
-For using the [synchronization](#synchronization), you need to have the following pip packages installed:
+For using the [synchronization](#synchronization), you need a sync tool installed. The preferred, Composer-native option is [php-sync-tool](https://github.com/konradmichalik/php-sync-tool):
+
+```bash
+$ composer require --dev konradmichalik/php-sync-tool
+```
+
+It is auto-detected at `vendor/bin/sync-tool` and used automatically once installed, no `deploy.php` change needed. The legacy Python tools remain supported as a fallback for projects that have not migrated yet:
 
 ```bash
 $ pip3 install db-sync-tool-kmi file-sync-tool-kmi
