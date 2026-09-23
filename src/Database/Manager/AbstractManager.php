@@ -47,7 +47,17 @@ abstract class AbstractManager
         $project = FeatureUtility::normalize((string) get('project'));
         $feature = $this->getFeatureName($feature);
 
-        return substr($project . '--' . $feature, 0, 63);
+        // truncate the project prefix, not the concatenated name: $feature alone may already
+        // carry a uniqueness hash suffix (hostname mode, see FeatureUtility::normalize()), and
+        // cutting the combined string to 63 chars from the right would silently discard
+        // exactly that suffix, letting distinct long-named instances collide on one database
+        $separator = '--';
+        $projectBudget = 63 - strlen($separator) - strlen($feature);
+        if ($projectBudget < 1) {
+            return substr($feature, 0, 63);
+        }
+
+        return substr($project, 0, $projectBudget) . $separator . $feature;
     }
 
 
