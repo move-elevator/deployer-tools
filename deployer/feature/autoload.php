@@ -6,6 +6,7 @@ require_once(__DIR__ . '/config/options.php');
 require_once(__DIR__ . '/config/set.php');
 
 require_once(__DIR__ . '/task/feature_init.php');
+require_once(__DIR__ . '/task/feature_hooks.php');
 require_once(__DIR__ . '/task/feature_setup.php');
 require_once(__DIR__ . '/task/feature_stop.php');
 require_once(__DIR__ . '/task/feature_notify.php');

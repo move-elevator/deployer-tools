@@ -42,6 +42,8 @@ function deleteFeature(?string $feature = null, $needConfirmation = false): void
         if (!$delete) return;
     }
 
+    invoke('feature:deprovision');
+
     if (isUrlShortener()) {
         removeUrlShortenerPath($feature);
     }

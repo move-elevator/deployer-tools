@@ -22,6 +22,7 @@ task('feature:setup', function () {
         info("setup feature branch <fg=magenta;options=bold>$feature</>");
         set('feature_setup', true);
         DbUtility::getDatabaseManager()->create();
+        invoke('feature:provision');
         renderRemoteTemplates();
     } else {
         set('feature_setup', false);
