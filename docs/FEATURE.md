@@ -326,6 +326,21 @@ task feature:cleanup
 [stage] info feature branch test deleted
 ```
 
+The remote branches are queried with `git ls-remote --heads origin`, so the task does not depend on the local checkout and works in CI with a detached HEAD or a shallow clone. If no branch is returned (e.g. the remote is unreachable), the task aborts instead of treating every instance as untracked.
+
+To run the cleanup unattended, pass `--force-cleanup`. It skips both the overall and the per-instance confirmation, which would otherwise default to "no" in a non-interactive run and delete nothing. A nightly pipeline schedule in GitLab CI keeps a [simple database pool](DATABASE.md#simple) from filling up with instances of merged branches:
+
+```yaml
+feature-cleanup:
+  stage: cleanup
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule" && $FEATURE_CLEANUP == "1"
+  script:
+    - vendor/bin/dep feature:cleanup stage --force-cleanup
+```
+
+The job needs read access to the git remote and the same SSH access to the target host as a regular deployment.
+
 ### Further more
 
 Additional configurations regarding the feature branch deployment are available here: [set.php](../deployer/feature/config/set.php)
