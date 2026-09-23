@@ -75,6 +75,16 @@ function initFeature(?string $feature = null): ?string
         set('deploy_path', get('deploy_path') . '/' . $feature);
     }
 
+    setFeaturePublicUrls($feature);
+    set('feature_initialized', true);
+    return $feature;
+}
+
+/**
+ * Set public_urls (and, outside subdomain mode, npm_variables) for the given instance.
+ */
+function setFeaturePublicUrls(string $feature): void
+{
     if (isFeatureSubdomainMode()) {
         // the instance gets its own subdomain instead of a subpath (feature_url_pattern);
         // the app is served from its root, so npm_variables keeps its blank default instead
@@ -91,8 +101,6 @@ function initFeature(?string $feature = null): ?string
         set('public_urls', $publicUrls);
         set('npm_variables', 'FEATURE_BRANCH_PATH_PUBLIC=/' . $feature . '/current/' . get('web_path') . ' ');
     }
-    set('feature_initialized', true);
-    return $feature;
 }
 
 /**

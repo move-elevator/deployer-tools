@@ -11,12 +11,16 @@ class EntryUtility
     protected JiraApi $jiraApi;
     protected ConfigReader $configReader;
     protected array $config;
+    // subdomain-mode instance names are lowercased, so category/issue detection below must
+    // match case-insensitively there; computed once instead of per preg_match() call
+    protected string $regexFlags;
 
     public function __construct()
     {
         $this->configReader = new ConfigReader();
         $this->config = $this->configReader->initConfig();
         $this->jiraApi = new JiraApi($this->config['jira']['api'], $this->config['jira']['auth']);
+        $this->regexFlags = $this->isSubdomainMode() ? 'i' : '';
     }
 
     /**
@@ -75,9 +79,8 @@ class EntryUtility
      */
     private function getEntryCategory(string $name): string
     {
-        $flags = $this->isSubdomainMode() ? 'i' : '';
-        if (preg_match('/(release)-(\d+.\d+.\d+)/' . $flags, $name)) return 'release';
-        if (preg_match('/([A-Z]+)-(\d+)/' . $flags, $name)) return 'feature';
+        if (preg_match('/(release)-(\d+.\d+.\d+)/' . $this->regexFlags, $name)) return 'release';
+        if (preg_match('/([A-Z]+)-(\d+)/' . $this->regexFlags, $name)) return 'feature';
         return $name;
     }
 
@@ -87,8 +90,7 @@ class EntryUtility
      */
     private function getEntryTag(string $name): string
     {
-        $flags = $this->isSubdomainMode() ? 'i' : '';
-        if (preg_match('/(release)-(\d+.\d+.\d+)/' . $flags, $name, $version)) return 'v' . $version[2];
+        if (preg_match('/(release)-(\d+.\d+.\d+)/' . $this->regexFlags, $name, $version)) return 'v' . $version[2];
         return '';
     }
 
@@ -98,8 +100,7 @@ class EntryUtility
      */
     private function getEntryIssue(string $name): string
     {
-        $flags = $this->isSubdomainMode() ? 'i' : '';
-        if (preg_match('/([A-Z]+)-(\d+)/' . $flags, $name, $issue)) {
+        if (preg_match('/([A-Z]+)-(\d+)/' . $this->regexFlags, $name, $issue)) {
             // subdomain-mode instance names are lowercased, restore the Jira issue key case
             return $this->isSubdomainMode() ? strtoupper($issue[0]) : $issue[0];
         }
