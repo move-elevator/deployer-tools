@@ -97,9 +97,10 @@ function isFeatureSubdomainMode(): bool
  * substituted with whichever instance is *currently* initialized - wrong for every other
  * instance's url, e.g. in feature:list or the feature index page.
  *
- * @throws \InvalidArgumentException if the pattern has no "<feature>" placeholder, still
- *                                   contains "{{feature}}", or does not resolve to a valid
- *                                   url with a hostname short enough for every label
+ * @throws \InvalidArgumentException if the pattern has no "<feature>" placeholder in its
+ *                                   hostname, still contains "{{feature}}", or does not
+ *                                   resolve to a valid url with a hostname short enough for
+ *                                   every label
  */
 function getFeatureSubdomainUrl(string $feature): string
 {
@@ -108,8 +109,13 @@ function getFeatureSubdomainUrl(string $feature): string
     if (str_contains($pattern, '{{feature}}')) {
         throw new \InvalidArgumentException('feature_url_pattern must not contain "{{feature}}", Deployer resolves "{{...}}" placeholders before the pattern is read here. Use "<feature>" instead.');
     }
-    if (!str_contains($pattern, '<feature>')) {
-        throw new \InvalidArgumentException('feature_url_pattern must contain a "<feature>" placeholder, e.g. "https://<feature>.stage.example.com/".');
+
+    // the placeholder must sit in the hostname, not merely anywhere in the pattern - a pattern
+    // like "https://stage.example.com/<feature>/" would otherwise pass, but every instance
+    // would share the same host and only differ by path, which is not subdomain mode at all
+    $patternHost = parse_url($pattern, PHP_URL_HOST);
+    if (empty($patternHost) || !str_contains($patternHost, '<feature>')) {
+        throw new \InvalidArgumentException('feature_url_pattern must contain a "<feature>" placeholder in the hostname, e.g. "https://<feature>.stage.example.com/".');
     }
 
     $url = str_replace('<feature>', $feature, $pattern);
