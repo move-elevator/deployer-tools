@@ -33,6 +33,13 @@ class IOService
     public function getEntryAppPath(Entry $entry): string {
         $configReader = new ConfigReader();
         $config = $configReader->initConfig();
+        $urlPattern = $config['featureUrlPattern'] ?? '';
+
+        if ('' !== $urlPattern) {
+            // subdomain mode: an absolute url instead of a path relative to the index page
+            return str_replace('<feature>', $entry->getName(), $urlPattern) . ltrim($config['defaultApplicationPath'], '/');
+        }
+
         return $entry->getName() . $config['defaultApplicationPath'];
     }
 

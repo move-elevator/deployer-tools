@@ -5,6 +5,7 @@ The feature branch deployment describes the deployment and initialization proces
 + [Prerequirements](#prerequirements)
 + [Initialization](#initialization)
 + [Deletion](#deletion)
++ [Hooks](#hooks)
 + [Notification](#notification)
 + [Synchronization](#synchronization)
 + [Information](#information)
@@ -63,14 +64,16 @@ $ vendor/bin/dep feature:setup stage --feature=TEST-01
 
 The `--feature=` value may be a full branch name. Path separators are replaced by a hyphen so the instance stays a single flat directory, url segment and database suffix:
 
-| `--feature=`         | instance name        |
-|----------------------|----------------------|
-| `TEST-01`            | `TEST-01`            |
-| `feature/TEST-01`    | `feature-TEST-01`    |
-| `bugfix/TEST-01`     | `bugfix-TEST-01`     |
-| `release/1.2.0`      | `release-1.2.0`      |
+| `--feature=`         | instance name        | instance name, subdomain mode |
+|----------------------|----------------------|--------------------------------|
+| `TEST-01`            | `TEST-01`            | `test-01`                      |
+| `feature/TEST-01`    | `feature-TEST-01`    | `feature-test-01`              |
+| `bugfix/TEST-01`     | `bugfix-TEST-01`     | `bugfix-test-01`               |
+| `release/1.2.0`      | `release-1.2.0`      | `release-1-2-0`                |
 
 Names that already consist of letters, digits, `_`, `-` and `.` are used unchanged, so existing instances and their databases stay reachable. Since the branch prefix is kept, `feature/TEST-01` and `bugfix/TEST-01` remain two separate instances. The same normalization is applied by `feature:cleanup` when it compares remote git branches with the deployed instances.
+
+With `feature_url_pattern` set (see [Subdomain mode](#subdomain-mode)), the instance name additionally becomes a valid DNS hostname label: lowercased, `.` and `_` replaced by `-`, and truncated with a short hash suffix if it would otherwise exceed 63 characters.
 
 A `--feature=` value that yields no usable name is rejected instead of falling back to the base instance, which the feature scaffolding would otherwise overwrite. That covers values without any allowed character as well as `.` and `..`.
 
@@ -97,8 +100,8 @@ This configuration defines the local template file as well as the remote target 
 | `DEPLOYER_CONFIG_DATABASE_USER` | should be defined with `database_user` in the host configuration                     |
 | `DEPLOYER_CONFIG_DATABASE_NAME` | will be dynamically generated                                                        |
 | `DEPLOYER_CONFIG_FEATURE_NAME`  | the normalized instance name derived from the `--feature=` command line argument     |
-| `DEPLOYER_CONFIG_FEATURE_URL`   | will be dynamically generated                                                        |
-| `DEPLOYER_CONFIG_FEATURE_PATH`  | will be dynamically generated                                                        |
+| `DEPLOYER_CONFIG_FEATURE_URL`   | will be dynamically generated, e.g. `https://test.local/TEST-01/` or, in subdomain mode, `https://test-01.stage.example.com/` |
+| `DEPLOYER_CONFIG_FEATURE_PATH`  | will be dynamically generated, e.g. `TEST-01/current/public/`; blank in subdomain mode, since the app is served from its subdomain's root |
 
 You can extend these list be providing more environment variables starting with `DEPLOYER_CONFIG_*`.
 
@@ -123,6 +126,25 @@ The `feature:stop` command deletes the feature branch instance, including the fo
 ```bash
 $ vendor/bin/dep feature:stop stage --feature=TEST-01
 ```
+
+### Hooks
+
+The recipe provides two no-op extension points for external infrastructure a feature instance needs beyond its deploy directory and database, most commonly registering or removing a subdomain via a hosting provider's API when [subdomain mode](#subdomain-mode) is used. Override them in your project's `deploy.php`:
+
+```php
+task('feature:provision', function () {
+    $host = parse_url(get('public_urls')[0], PHP_URL_HOST);
+    // e.g. call your provider's API to create $host and wait until it resolves
+});
+
+task('feature:deprovision', function () {
+    // e.g. remove it again
+});
+```
+
+`feature:provision` runs once per new instance, right after its database is created (`feature:setup`) and before `feature_templates` are rendered, since a template may already depend on the infrastructure it provisions. `feature:deprovision` runs before an instance's symlink, database and directory are removed, for both `feature:stop` and `feature:cleanup`.
+
+Both must be idempotent: an aborted deploy can leave `feature:provision` applied without the instance directory existing yet, so a retried deploy runs it again; deletion can likewise be invoked more than once for the same instance.
 
 ### Notification
 
@@ -238,6 +260,26 @@ The folder structure on the server will look like this:
 ```
 
 So the resulting url will look like: `https://test.local/app`.
+
+### Subdomain mode
+
+Instead of a subpath, a feature instance can be served from its own subdomain. Set `feature_url_pattern` with a `<feature>` placeholder:
+
+```php
+set('feature_url_pattern', 'https://<feature>.stage.example.com/');
+```
+
+This is unset (`''`) by default, which keeps every existing project on the path-based behaviour above, byte-identical. Once set, `public_urls`, `DEPLOYER_CONFIG_FEATURE_URL`, `feature:list` and the feature index page all resolve to the subdomain instead. `DEPLOYER_CONFIG_FEATURE_PATH` becomes blank and `FEATURE_BRANCH_PATH_PUBLIC` (see [build recipe](../deployer/build/)) is not set, since the application is served from the root of its own subdomain rather than from a subpath of the base host.
+
+> Use `<feature>`, not `{{feature}}`: Deployer resolves `{{...}}` placeholders as soon as the configuration value is read, which would substitute the *currently* initialized instance everywhere the pattern is read, including for other instances (`feature:list`, the index page). `<feature>` is substituted explicitly instead.
+
+Combining this with the url shortener (`feature_url_shortener`, see above) is recommended but not required: the shortener only changes where the instance is stored (`.fbd/instances/<feature>` symlinked from a flat directory), which either can serve as the subdomain's document root. See [Web server](WEBSERVER.md#subdomain-mode) for the required wildcard DNS entry, wildcard certificate and vhost configuration.
+
+Because instance names become a DNS hostname label in this mode (see the table under [Initialization](#initialization)), branch names that differ only by casing or by `.`/`_` punctuation resolve to the same instance, and a name longer than 63 characters is truncated with a hash suffix.
+
+**Migrating an existing host:** switching `feature_url_pattern` on for a host that already has path-mode instances changes their hostname-safe name (e.g. `TEST-01` becomes `test-01`), which would otherwise orphan the existing directory while creating an empty new one under the new name. To guard against that, `feature:init`/`feature:setup`/`feature:stop` fail with an error if a directory under the pre-switch name still exists. Remove existing instances first against the previous configuration (`feature:stop` or `feature:cleanup`), then enable subdomain mode.
+
+If you use `feature:index`, re-run it (`feature:index`) after enabling subdomain mode: an already-deployed `index.json` predates the new `featureUrlPattern` key and needs to be re-rendered for the index page to link to the subdomains. Set `feature_index_app_path` relative to the application root (e.g. `''`), not to `current/public/`, since there is no path prefix to traverse in this mode.
 
 ### Scheduler
 

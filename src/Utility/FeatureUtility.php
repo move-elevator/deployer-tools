@@ -18,11 +18,15 @@ final class FeatureUtility
      * characters only are returned unchanged, which keeps existing instances and their
      * databases reachable.
      *
+     * @param bool $hostnameSafe additionally tighten the result into a single valid DNS
+     *                           hostname label, for feature_url_pattern (subdomain mode).
+     *                           Only ever pass true for the feature part of a name, never
+     *                           for a database/project prefix that predates subdomain mode.
      * @throws \InvalidArgumentException if a non-blank identifier normalizes to an empty
      *                                   name or to a relative path segment, either of which
      *                                   would silently address the base instance
      */
-    public static function normalize(?string $feature): string
+    public static function normalize(?string $feature, bool $hostnameSafe = false): string
     {
         $feature = trim((string) $feature);
 
@@ -33,11 +37,41 @@ final class FeatureUtility
         $normalized = str_replace(['/', '\\'], '-', $feature);
         $normalized = (string) preg_replace('/[^A-Za-z0-9_\-.]/', '', $normalized);
 
+        if ($hostnameSafe) {
+            $normalized = self::toHostnameLabel($normalized);
+        }
+
         // "" would resolve to the base instance, "." and ".." to it or its parent
         if ('' === trim($normalized, '.')) {
             throw new \InvalidArgumentException(
                 sprintf('The feature name "%s" does not yield a usable instance name.', $feature)
             );
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * Tighten an already flattened name into a single DNS hostname label: lowercase,
+     * "a-z0-9-" only, no leading, trailing or duplicate hyphens, at most 63 characters
+     * (the DNS label limit). A name that would exceed the limit is truncated and given a
+     * short hash suffix, so it stays both valid and stable across repeated deploys of the
+     * same (long) branch name.
+     */
+    private static function toHostnameLabel(string $normalized): string
+    {
+        $normalized = strtolower($normalized);
+        $normalized = str_replace(['.', '_'], '-', $normalized);
+        $normalized = (string) preg_replace('/[^a-z0-9-]/', '', $normalized);
+        $normalized = (string) preg_replace('/-+/', '-', $normalized);
+        $normalized = trim($normalized, '-');
+
+        if (strlen($normalized) > 63) {
+            // hash the already-canonicalized value, not the pre-normalization input: two
+            // branch names differing only by case or by "."/"_" punctuation normalize to the
+            // same (short) instance name, and must keep resolving to the same hash here too
+            $hash = substr(md5($normalized), 0, 8);
+            $normalized = rtrim(substr($normalized, 0, 63 - 1 - strlen($hash)), '-') . '-' . $hash;
         }
 
         return $normalized;

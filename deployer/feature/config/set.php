@@ -50,6 +50,21 @@ set('feature_url_shortener', true);
 set('feature_url_shortener_path', '{{feature_directory_path}}instances/');
 
 /**
+ * Feature Subdomain Mode
+ *
+ * Blank by default: instances stay path-based (e.g. combined with the url shortener above).
+ * Set a pattern with a "<feature>" placeholder to serve each instance from its own subdomain
+ * instead, e.g.:
+ *
+ * set('feature_url_pattern', 'https://<feature>.stage.example.com/');
+ *
+ * Requires a wildcard DNS entry, a wildcard certificate and a matching web server vhost -
+ * see docs/WEBSERVER.md. Instance names are lowercased and restricted to "a-z0-9-" in this
+ * mode, since they become a DNS hostname label.
+ */
+set('feature_url_pattern', '');
+
+/**
  * Feature Index
  */
 set('feature_index_title', 'DEMO');

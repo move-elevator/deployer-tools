@@ -22,6 +22,7 @@ task('feature:setup', function () {
         info("setup feature branch <fg=magenta;options=bold>$feature</>");
         set('feature_setup', true);
         DbUtility::getDatabaseManager()->create();
+        invoke('feature:provision');
         renderRemoteTemplates();
     } else {
         set('feature_setup', false);
@@ -86,7 +87,8 @@ function renderRemoteTemplates(): void
         }
     }
 
-    $featurePath = isUrlShortener() ? "$feature/" :$feature . '/current/' . get('web_path') ;
+    // in subdomain mode the app is served from the root of its own subdomain, no path prefix
+    $featurePath = isFeatureSubdomainMode() ? '' : (isUrlShortener() ? "$feature/" : $feature . '/current/' . get('web_path'));
 
     // preparing default arguments for templates and extend by additional template variables
     $arguments = array_merge([

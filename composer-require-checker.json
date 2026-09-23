@@ -14,6 +14,7 @@
 		"Deployer\\get",
 		"Deployer\\has",
 		"Deployer\\input",
+		"Deployer\\isFeatureSubdomainMode",
 		"Deployer\\run",
 		"Deployer\\applyDeployPermissions",
 		"Deployer\\runExtended",
