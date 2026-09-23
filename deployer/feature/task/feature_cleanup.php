@@ -12,10 +12,14 @@ task('feature:cleanup', function () {
 
     $gitBranches = listRemoteGitBranches();
     // stat's "%F" contains a space for files and symlinks ("regular file"), which would shift the
-    // name out of index 2, so only directories are considered feature instances
+    // name out of index 2, so only directories are considered feature instances ("Verzeichnis" on
+    // hosts with a German locale, same check as feature:list)
     $remoteInstances = array_values(array_map(
         static fn (array $item) => $item[2],
-        array_filter(listFeatureInstances(), static fn (array $item) => $item[0] === 'directory'),
+        array_filter(
+            listFeatureInstances(),
+            static fn (array $item) => in_array(strtolower($item[0]), ['directory', 'verzeichnis'], true),
+        ),
     ));
 
     $comparison = [];
