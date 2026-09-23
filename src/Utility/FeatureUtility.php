@@ -38,7 +38,7 @@ final class FeatureUtility
         $normalized = (string) preg_replace('/[^A-Za-z0-9_\-.]/', '', $normalized);
 
         if ($hostnameSafe) {
-            $normalized = self::toHostnameLabel($normalized, $feature);
+            $normalized = self::toHostnameLabel($normalized);
         }
 
         // "" would resolve to the base instance, "." and ".." to it or its parent
@@ -55,10 +55,10 @@ final class FeatureUtility
      * Tighten an already flattened name into a single DNS hostname label: lowercase,
      * "a-z0-9-" only, no leading, trailing or duplicate hyphens, at most 63 characters
      * (the DNS label limit). A name that would exceed the limit is truncated and given a
-     * short hash suffix derived from the original identifier, so it stays both valid and
-     * stable across repeated deploys of the same (long) branch name.
+     * short hash suffix, so it stays both valid and stable across repeated deploys of the
+     * same (long) branch name.
      */
-    private static function toHostnameLabel(string $normalized, string $original): string
+    private static function toHostnameLabel(string $normalized): string
     {
         $normalized = strtolower($normalized);
         $normalized = str_replace(['.', '_'], '-', $normalized);
@@ -67,7 +67,10 @@ final class FeatureUtility
         $normalized = trim($normalized, '-');
 
         if (strlen($normalized) > 63) {
-            $hash = substr(md5($original), 0, 8);
+            // hash the already-canonicalized value, not the pre-normalization input: two
+            // branch names differing only by case or by "."/"_" punctuation normalize to the
+            // same (short) instance name, and must keep resolving to the same hash here too
+            $hash = substr(md5($normalized), 0, 8);
             $normalized = rtrim(substr($normalized, 0, 63 - 1 - strlen($hash)), '-') . '-' . $hash;
         }
 
