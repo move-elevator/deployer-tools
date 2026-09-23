@@ -10,15 +10,17 @@ require_once('feature_stop.php');
 
 task('feature:cleanup', function () {
 
-    runLocally('git pull');
-    // refresh tracked remote branches locally
-    runLocally('git remote prune origin');
-    $gitBranches = runLocally('git branch -r | tr "\\n" "," | tr -d \' \' | sed \'s/origin\\///g\' | sed \'s/.$//\'');
-    $gitBranches = explode(',', $gitBranches);
-    $remoteInstances = listFeatureInstances();
-    $remoteInstances = array_map(static function ($item) {
-        return $item[2];
-    }, $remoteInstances);
+    $gitBranches = listRemoteGitBranches();
+    // stat's "%F" contains a space for files and symlinks ("regular file"), which would shift the
+    // name out of index 2, so only directories are considered feature instances ("Verzeichnis" on
+    // hosts with a German locale, same check as feature:list)
+    $remoteInstances = array_values(array_map(
+        static fn (array $item) => $item[2],
+        array_filter(
+            listFeatureInstances(),
+            static fn (array $item) => in_array(strtolower($item[0]), ['directory', 'verzeichnis'], true),
+        ),
+    ));
 
     $comparison = [];
     foreach ($gitBranches as $branch) {
@@ -55,7 +57,8 @@ task('feature:cleanup', function () {
 
 
     if (!empty($remoteInstances)) {
-        $delete = askConfirmation("Do you want to cleanup all remote feature instances which haven't an according git branch anymore? (marked as <fg=red>red</>)", false);
+        $force = (bool)input()->getOption('force-cleanup');
+        $delete = $force || askConfirmation("Do you want to cleanup all remote feature instances which haven't an according git branch anymore? (marked as <fg=red>red</>)", false);
 
         if ($delete) {
             $deployPath = get('deploy_path');
@@ -67,7 +70,7 @@ task('feature:cleanup', function () {
                 set('deploy_path', $deployPath);
 
                 initFeature($instance);
-                deleteFeature($instance, true);
+                deleteFeature($instance, !$force);
             }
         }
     } else {
@@ -78,3 +81,25 @@ task('feature:cleanup', function () {
     ->select('type=feature-branch-deployment')
     ->desc('Compare remote git branches with remote feature instances and provides a cleanup for all untracked feature instances on the remote server')
 ;
+
+/**
+ * Queries the remote directly instead of reading local remote-tracking branches, which are
+ * incomplete in CI checkouts (detached HEAD, single-ref fetch) and would mark every instance
+ * as untracked.
+ */
+function listRemoteGitBranches(): array
+{
+    $output = runLocally('git ls-remote --heads origin');
+    $branches = [];
+    foreach (explode("\n", $output) as $line) {
+        if (preg_match('#\srefs/heads/(.+)$#', trim($line), $matches)) {
+            $branches[] = $matches[1];
+        }
+    }
+
+    if (empty($branches)) {
+        throw new \RuntimeException('No remote git branches found via "git ls-remote --heads origin", aborting cleanup to avoid deleting every feature instance.');
+    }
+
+    return $branches;
+}
