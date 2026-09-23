@@ -11,6 +11,7 @@ use MoveElevator\DeployerTools\Utility\VarUtility;
 use function Deployer\get;
 use function Deployer\run;
 use function Deployer\input;
+use function Deployer\isFeatureSubdomainMode;
 use function Deployer\runExtended;
 use function Deployer\test;
 
@@ -57,6 +58,7 @@ abstract class AbstractManager
             $feature = (string) input()->getOption('feature');
         }
 
-        return FeatureUtility::normalize($feature);
+        // must match Deployer\getFeatureName(), or the directory and the database name diverge
+        return FeatureUtility::normalize($feature, isFeatureSubdomainMode());
     }
 }
