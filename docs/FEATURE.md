@@ -332,7 +332,7 @@ To run the cleanup unattended, pass `--force-cleanup`. It skips both the overall
 
 ```yaml
 feature-cleanup:
-  stage: cleanup
+  stage: deploy
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && $FEATURE_CLEANUP == "1"
   script:
