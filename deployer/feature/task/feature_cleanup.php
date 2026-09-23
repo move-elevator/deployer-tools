@@ -15,10 +15,12 @@ task('feature:cleanup', function () {
     runLocally('git remote prune origin');
     $gitBranches = runLocally('git branch -r | tr "\\n" "," | tr -d \' \' | sed \'s/origin\\///g\' | sed \'s/.$//\'');
     $gitBranches = explode(',', $gitBranches);
-    $remoteInstances = listFeatureInstances();
-    $remoteInstances = array_map(static function ($item) {
-        return $item[2];
-    }, $remoteInstances);
+    // stat's "%F" contains a space for files and symlinks ("regular file"), which would shift the
+    // name out of index 2, so only directories are considered feature instances
+    $remoteInstances = array_values(array_map(
+        static fn (array $item) => $item[2],
+        array_filter(listFeatureInstances(), static fn (array $item) => $item[0] === 'directory'),
+    ));
 
     $comparison = [];
     foreach ($gitBranches as $branch) {
