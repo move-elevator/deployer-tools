@@ -128,7 +128,7 @@ The base instance (no `--feature`) and the [feature index page](FEATURE.md#infor
 ```apache
 <VirtualHost *:443>
     ServerAlias *.stage.example.com
-    VirtualDocumentRoot /var/www/html/%1/current/public
+    VirtualDocumentRoot /var/www/html/%1
     <Directory /var/www/html>
         AllowOverride All
         Options +FollowSymLinks
@@ -136,7 +136,7 @@ The base instance (no `--feature`) and the [feature index page](FEATURE.md#infor
 </VirtualHost>
 ```
 
-`mod_vhost_alias`'s `%1` is the first wildcard label, i.e. the feature name. `+FollowSymLinks` is required for `VirtualDocumentRoot` to resolve the url shortener's symlink; without the shortener, point `%1` directly at the nested path as shown above. Note that `mod_vhost_alias` does not set `DOCUMENT_ROOT` the way a plain vhost does, check your PHP-FPM/mod_php setup if the application relies on that variable.
+`mod_vhost_alias`'s `%1` is the first wildcard label, i.e. the feature name, and (with the shortener) already resolves through the flat symlink to `current/public` on its own, same as the nginx `root` above; appending `/current/public` here would point below the symlink and 404. `+FollowSymLinks` is required for `VirtualDocumentRoot` to resolve that symlink at all. Without the shortener, point `%1` at the nested path instead: `VirtualDocumentRoot /var/www/html/%1/current/public`. Note that `mod_vhost_alias` does not set `DOCUMENT_ROOT` the way a plain vhost does, check your PHP-FPM/mod_php setup if the application relies on that variable.
 
 ## User group
 
