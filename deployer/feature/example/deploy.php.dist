@@ -34,6 +34,21 @@ set('msteams_webhook', 'ToDo');
 set('feature_url_shortener', true);
 
 /**
+ * Feature Subdomain Mode
+ */
+#set('feature_url_pattern', 'https://<feature>.stage.example.com/');
+
+/**
+ * Feature Provisioning Hooks
+ */
+#task('feature:provision', function () {
+#    // e.g. create the subdomain above via your hosting provider's API
+#});
+#task('feature:deprovision', function () {
+#    // e.g. remove it again
+#});
+
+/**
  * Feature Index
  */
 set('feature_index_title', 'example<em>project</em>');

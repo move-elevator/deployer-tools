@@ -86,7 +86,8 @@ function renderRemoteTemplates(): void
         }
     }
 
-    $featurePath = isUrlShortener() ? "$feature/" :$feature . '/current/' . get('web_path') ;
+    // in subdomain mode the app is served from the root of its own subdomain, no path prefix
+    $featurePath = isFeatureSubdomainMode() ? '' : (isUrlShortener() ? "$feature/" : $feature . '/current/' . get('web_path'));
 
     // preparing default arguments for templates and extend by additional template variables
     $arguments = array_merge([

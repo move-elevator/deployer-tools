@@ -36,6 +36,7 @@ function renderIndexTemplate(): void
         'DEPLOYER_CONFIG_FEATURE_INDEX_JIRA_API' => get('feature_index_jira_api'),
         'DEPLOYER_CONFIG_FEATURE_INDEX_JIRA_AUTH' => get('feature_index_jira_auth'),
         'DEPLOYER_CONFIG_FEATURE_INDEX_GIT_BRANCH' => get('feature_index_git_branch'),
+        'DEPLOYER_CONFIG_FEATURE_INDEX_URL_PATTERN' => isFeatureSubdomainMode() ? get('feature_url_pattern') : '',
     ];
 
     debug('Preparing index template');

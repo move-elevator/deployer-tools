@@ -22,7 +22,7 @@ class TemplateService
             $html .= "<tr>" .
                 "<td class='branch'>" .
                 "<a class='pill-wrapper' href='" . $config['git']['branch'] . $entry->getName() . "' target='_blank'><div class='pill' data-tooltip='" . ucfirst($entry->getCategory()) . " branch' data-type='" . $entry->getCategory() . "'>" . strtoupper($entry->getCategory()[0]) . "</div></a>" .
-                "<a class='entry' href='" . $ioService->getEntryAppPath($entry) . "'><strong>" . $entry->getName() . "</strong></a> <sup>" . $entry->getTag() . "</sup>" .
+                "<a class='entry' href='" . htmlspecialchars($ioService->getEntryAppPath($entry), ENT_QUOTES) . "'><strong>" . $entry->getName() . "</strong></a> <sup>" . $entry->getTag() . "</sup>" .
                 "</td>" .
                 "<td style='text-align: right;'>" .
                 $this->renderIssueData($entry) .

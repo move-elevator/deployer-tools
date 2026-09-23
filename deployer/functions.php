@@ -73,7 +73,58 @@ function getFeatureName(?string $feature = null): string
         $feature = featureRequested() ? (string)input()->getOption('feature') : '';
     }
 
-    return FeatureUtility::normalize($feature);
+    return FeatureUtility::normalize($feature, isFeatureSubdomainMode());
+}
+
+/**
+ * Whether feature instances get their own subdomain instead of a subpath, as configured via
+ * feature_url_pattern (e.g. "https://<feature>.stage.example.com/"). A blank/unset value
+ * keeps the existing subpath behaviour untouched.
+ *
+ * @return bool
+ */
+function isFeatureSubdomainMode(): bool
+{
+    return has('feature_url_pattern') && '' !== trim((string) get('feature_url_pattern'));
+}
+
+/**
+ * Resolve a feature instance's public url from feature_url_pattern, substituting the
+ * "<feature>" placeholder with the (already hostname-normalized) instance name.
+ *
+ * "{{feature}}" is rejected explicitly: Deployer's get() resolves "{{...}}" placeholders
+ * eagerly, so by the time feature_url_pattern is read here it would already have been
+ * substituted with whichever instance is *currently* initialized - wrong for every other
+ * instance's url, e.g. in feature:list or the feature index page.
+ *
+ * @throws \InvalidArgumentException if the pattern has no "<feature>" placeholder, still
+ *                                   contains "{{feature}}", or does not resolve to a valid
+ *                                   url with a hostname short enough for every label
+ */
+function getFeatureSubdomainUrl(string $feature): string
+{
+    $pattern = trim((string) get('feature_url_pattern'));
+
+    if (str_contains($pattern, '{{feature}}')) {
+        throw new \InvalidArgumentException('feature_url_pattern must not contain "{{feature}}", Deployer resolves "{{...}}" placeholders before the pattern is read here. Use "<feature>" instead.');
+    }
+    if (!str_contains($pattern, '<feature>')) {
+        throw new \InvalidArgumentException('feature_url_pattern must contain a "<feature>" placeholder, e.g. "https://<feature>.stage.example.com/".');
+    }
+
+    $url = str_replace('<feature>', $feature, $pattern);
+    $host = parse_url($url, PHP_URL_HOST);
+
+    if (empty($host)) {
+        throw new \InvalidArgumentException("feature_url_pattern \"$pattern\" does not resolve to a valid url (missing host): \"$url\".");
+    }
+    foreach (explode('.', $host) as $label) {
+        if (strlen($label) > 63) {
+            throw new \InvalidArgumentException("feature_url_pattern \"$pattern\" resolves to a hostname label longer than 63 characters: \"$label\".");
+        }
+    }
+
+    return rtrim($url, '/') . '/';
 }
 
 /**
