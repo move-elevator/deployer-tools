@@ -156,6 +156,11 @@ main section > h2 {
     right: 0;
     transform: translate(0, -.25rem);
 }
+/* Pico's hover slide animation centers the tooltip again with translate(-50%, ...) */
+.deployment [data-tooltip]:is(:hover, :focus)::before {
+    --pico-tooltip-slide-to: translate(0, -.25rem);
+    transform: translate(0, .75rem);
+}
 .deployment-meta {
     display: block;
     color: var(--pico-muted-color);
