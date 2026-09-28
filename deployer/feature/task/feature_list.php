@@ -66,6 +66,11 @@ function listFeatureInstances(): array {
         $path = get('deploy_path');
     }
 
+    // no instance has ever been created on this host yet
+    if (!test("[[ -d $path ]]")) {
+        return [];
+    }
+
     // fetch statistic information about feature branch directories
     //  > stat -c '%F %Y %n ' *
     //  > directory 1674227229 feature-start
