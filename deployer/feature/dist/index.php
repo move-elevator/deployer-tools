@@ -11,6 +11,7 @@ $config = $configReader->initConfig();
 // the title is set in the project's deploy.php and may contain markup for the heading, e.g. <em>
 $projectTitle = htmlspecialchars(strip_tags($config['projectName']), ENT_QUOTES);
 $logo = current(array_filter(['.fbd/logo.svg', '.fbd/logo.png'], 'file_exists'));
+$hasCustomBackground = file_exists('.fbd/background.png');
 
 // feature instances are test systems, keep the overview out of search engines
 header('X-Robots-Tag: noindex, nofollow');
@@ -31,13 +32,20 @@ header('X-Robots-Tag: noindex, nofollow');
         <link rel="stylesheet" href=".fbd/index/assets/css/style.css">
         <script src=".fbd/index/assets/js/index.js" defer></script>
         <style>
-            <?php if (file_exists('.fbd/background.png')) {
+            <?php if ($hasCustomBackground) {
                     echo "body {background-image: url('.fbd/background.png');background-repeat: repeat-y;background-attachment: fixed;background-position: right;background-size: contain;min-height: 100vh;}";
                   }
             ?>
         </style>
     </head>
     <body>
+        <?php // a project-supplied background.png (above) is a deliberate custom look, do not compete with it ?>
+        <?php if (!$hasCustomBackground): ?>
+        <div class="bg-pattern" aria-hidden="true"></div>
+        <?php if ($logo): ?>
+        <img class="bg-logo" src="<?php echo $logo ?>" alt="" aria-hidden="true">
+        <?php endif ?>
+        <?php endif ?>
         <?php echo $templateService->renderDiskSpace($ioService) ?>
         <header class="container">
             <nav>
