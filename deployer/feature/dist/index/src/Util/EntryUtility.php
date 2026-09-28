@@ -51,8 +51,8 @@ class EntryUtility
             $groups[in_array($entry->getCategory(), ['feature', 'release'], true) ? $entry->getCategory() : 'reference'][] = $entry;
         }
 
-        $order = ['main', 'master', 'stage', 'test'];
-        usort($groups['reference'], fn (Entry $a, Entry $b) => [$this->searchArrayLike($a->getName(), $order), $a->getName()] <=> [$this->searchArrayLike($b->getName(), $order), $b->getName()]);
+        $referenceNames = $this->getReferenceNames();
+        usort($groups['reference'], static fn (Entry $a, Entry $b) => array_search(strtolower($a->getName()), $referenceNames, true) <=> array_search(strtolower($b->getName()), $referenceNames, true));
         // most recently deployed first, that is what is being worked on
         usort($groups['feature'], static fn (Entry $a, Entry $b) => $b->getDeployment()->timestamp <=> $a->getDeployment()->timestamp);
         usort($groups['release'], static fn (Entry $a, Entry $b) => version_compare(ltrim($b->getTag(), 'v'), ltrim($a->getTag(), 'v')));
@@ -67,8 +67,20 @@ class EntryUtility
     private function getEntryCategory(string $name): string
     {
         if (preg_match('/(release)-(\d+\.\d+\.\d+)/' . $this->regexFlags, $name)) return 'release';
-        if (preg_match('/([A-Z]+)-(\d+)/' . $this->regexFlags, $name)) return 'feature';
-        return $name;
+        // the reference instances keep their name as category, so main/master get their own color
+        if (in_array(strtolower($name), $this->getReferenceNames(), true)) return $name;
+        return 'feature';
+    }
+
+    /**
+     * Instances that must not be stopped (feature_stop_disallowed_names) are the reference stages,
+     * every other instance is a feature instance, with or without an issue key in its name
+     *
+     * @return string[]
+     */
+    private function getReferenceNames(): array
+    {
+        return array_map('strtolower', $this->config['referenceNames'] ?? ['main', 'master']);
     }
 
     /**
@@ -101,21 +113,6 @@ class EntryUtility
     private function isSubdomainMode(): bool
     {
         return !empty($this->config['featureUrlPattern'] ?? '');
-    }
-
-    /**
-     * @param string $haystack
-     * @param array $array
-     * @return int
-     */
-    private function searchArrayLike(string $haystack, array $array): int
-    {
-        foreach ($array as $key => $needle) {
-            if (strpos($haystack, $needle) === 0) {
-                return $key;
-            }
-        }
-        return 999;
     }
 
 }
