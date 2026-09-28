@@ -45,7 +45,7 @@ header('X-Robots-Tag: noindex, nofollow');
                     <li>
                         <hgroup>
                             <h1><?php echo $config['projectName'] ?> <span class="app-type" aria-hidden="true"><?php echo $templateService->getApplicationType($config['applicationType']) ?></span></h1>
-                            <p>Feature Branch Deployment</p>
+                            <p>Feature Branch Deployment · Test Systems</p>
                         </hgroup>
                     </li>
                 </ul>
