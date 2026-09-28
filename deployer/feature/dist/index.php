@@ -53,7 +53,7 @@ header('X-Robots-Tag: noindex, nofollow');
                     <?php echo $templateService->renderAdditionalLinks($config['additionalLinks']) ?>
                     <?php if ($logo): ?>
                     <li>
-                        <img class="logo" title="<?php echo $projectTitle ?>" alt="<?php echo $projectTitle ?>" width="56" src="<?php echo $logo ?>" />
+                        <img class="logo" title="<?php echo $projectTitle ?>" alt="<?php echo $projectTitle ?>" height="36" src="<?php echo $logo ?>" />
                     </li>
                     <?php endif ?>
                 </ul>

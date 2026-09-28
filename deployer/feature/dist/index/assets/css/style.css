@@ -32,7 +32,9 @@ header h1 {
 }
 .logo {
     display: block;
-    height: auto;
+    width: auto;
+    height: 2.25rem;
+    max-width: 10rem;
     border-radius: var(--pico-border-radius);
 }
 
