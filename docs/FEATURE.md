@@ -236,6 +236,8 @@ This uploads the index application to the host and creates a symbolic link to th
 
 The index configuration, including `feature_index_jira_auth`, is stored as `index.config.php` so the web server executes it instead of serving it as plain text. Cached Jira responses below `index/var/` are PHP files for the same reason. Earlier versions stored a plain `index.json` and raw JSON cache files there, `feature:index` removes both.
 
+To hide the credentials from other local users, `index.config.php` is assigned to `requirements_user_group` (the web server group, `www-data` by default) and set to mode `640`. If the deploy user cannot change the group, the file stays at `644` and `feature:index` warns when `feature_index_jira_auth` is set.
+
 On Apache, the shipped `.htaccess` files additionally deny HTTP access to `index.config.php`, `index.json`, `index/src/` and `index/var/`. On nginx, add the equivalent rule to the server block, see [Web server](WEBSERVER.md#feature-index).
 
 Issue details (type, status, assignee) are only requested from Jira when `feature_index_jira_api` is set (e.g. `https://acme.atlassian.net/rest/api/3/issue/`, empty by default). Non-public Jira instances additionally need `feature_index_jira_auth` (base64 encoded `email:api-token`). Failed requests are neither shown nor cached, the remaining issues are requested in parallel.
