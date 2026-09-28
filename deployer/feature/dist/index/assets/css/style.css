@@ -28,8 +28,8 @@ main {
 }
 .bg-logo {
     position: fixed;
-    right: -3rem;
-    bottom: -3rem;
+    right: 0;
+    bottom: 0;
     z-index: -1;
     /* --bg-logo-width (set inline) caps a raster logo to a modest multiple of its natural size,
        an SVG has no such limit; the blur hides both the crop seam and any residual pixelation */
@@ -37,6 +37,9 @@ main {
     height: auto;
     opacity: .07;
     filter: blur(2px);
+    /* percentage translate crops a consistent sliver off the corner whatever the logo's aspect
+       ratio; a fixed rem offset used to eat half a short, wide wordmark's height */
+    transform: translate(15%, 15%);
     pointer-events: none;
     user-select: none;
 }
@@ -46,8 +49,8 @@ main {
     }
 }
 @keyframes bg-logo-breathe {
-    0%, 100% { opacity: .06; transform: scale(1); }
-    50% { opacity: .11; transform: scale(1.03); }
+    0%, 100% { opacity: .06; transform: translate(15%, 15%) scale(1); }
+    50% { opacity: .11; transform: translate(15%, 15%) scale(1.03); }
 }
 
 /* Header */
