@@ -13,6 +13,43 @@ main {
     overflow-x: clip;
 }
 
+/* Decorative background: a faint dot grid in the brand accent plus an oversized, translucent
+   echo of the project logo bleeding off the corner. Both are skipped when a project supplies its
+   own background.png (see index.php), so a custom look is never fought over. */
+.bg-pattern {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    background-image: radial-gradient(var(--fbd-main) 1.5px, transparent 1.5px);
+    background-size: 28px 28px;
+    background-repeat: repeat;
+    opacity: .12;
+    pointer-events: none;
+}
+.bg-logo {
+    position: fixed;
+    right: -3rem;
+    bottom: -3rem;
+    z-index: -1;
+    /* --bg-logo-width (set inline) caps a raster logo to a modest multiple of its natural size,
+       an SVG has no such limit; the blur hides both the crop seam and any residual pixelation */
+    width: min(var(--bg-logo-width, 416px), 60vw);
+    height: auto;
+    opacity: .07;
+    filter: blur(2px);
+    pointer-events: none;
+    user-select: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+    .bg-logo {
+        animation: bg-logo-breathe 12s ease-in-out infinite;
+    }
+}
+@keyframes bg-logo-breathe {
+    0%, 100% { opacity: .06; transform: scale(1); }
+    50% { opacity: .11; transform: scale(1.03); }
+}
+
 /* Header */
 header.container {
     padding-top: 1.5rem;
