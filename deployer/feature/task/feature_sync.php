@@ -132,8 +132,11 @@ task('feature:sync', function () {
             $useRsync = $isPhpSyncTool ? '' : '--use-rsync';
             // php-sync-tool has file sync integrated, no separate file_sync_tool call needed
             $withFiles = $isPhpSyncTool && false !== get('file_sync_tool') ? '--with-files' : '';
+            $filesTarget = $isPhpSyncTool && null !== get('feature_sync_target_path_files')
+                ? '--files-target ' . escapeshellarg(get('feature_sync_target_path_files'))
+                : '';
             info('Synching database');
-            runLocally(escapeshellarg($dbSyncTool) . " -f {{feature_sync_config}} --target-path {{feature_sync_target_path}} $useRsync $withFiles -y $optionalVerbose");
+            runLocally(escapeshellarg($dbSyncTool) . " -f {{feature_sync_config}} --target-path {{feature_sync_target_path}} $filesTarget $useRsync $withFiles -y $optionalVerbose");
             $synced = true;
         } else {
             debug("Skipping database sync, command \”$dbSyncTool\” not available");
