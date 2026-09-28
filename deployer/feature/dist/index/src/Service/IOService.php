@@ -8,6 +8,8 @@ use MoveElevator\FeatureIndex\Utility\EntryUtility;
 
 class IOService
 {
+    private const BYTES_PER_GB = 1000 ** 3;
+
     public string $basePath;
 
     /**
@@ -30,7 +32,7 @@ class IOService
         $config = (new ConfigReader())->initConfig();
         (new JiraApi($config['jira']['api'], $config['jira']['auth']))->loadIssues($directoryEntries);
 
-        return $entryUtility->sortDirectoryEntries($directoryEntries);
+        return $directoryEntries;
     }
 
     public function getEntryAppPath(Entry $entry): string {
@@ -46,12 +48,12 @@ class IOService
         return $entry->getName() . $config['defaultApplicationPath'];
     }
 
-    public function getDiskTotalSpace(): float {
-        return round(disk_total_space('.') / (1024 * (pow(10, 6))), 2);
+    private function getDiskTotalSpace(): float {
+        return round(disk_total_space('.') / self::BYTES_PER_GB, 2);
     }
 
     public function getDiskTotalFree(): float {
-        return round(disk_free_space('.') / (1024 * (pow(10, 6))), 2);
+        return round(disk_free_space('.') / self::BYTES_PER_GB, 2);
     }
 
     public function getDiskFullSpacePercent(): float {
@@ -82,10 +84,6 @@ class IOService
 
     public function getDiskSpaceColor(): string {
         return self::DISK_SPACE_LEVELS[$this->getDiskSpaceStatus()]['color'];
-    }
-
-    public function getDiskSpaceThreshold(): int {
-        return self::DISK_SPACE_LEVELS[$this->getDiskSpaceStatus()]['threshold'];
     }
 
     public function directoryExists(string $path, bool $forceCreate = false): bool

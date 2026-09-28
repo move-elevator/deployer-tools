@@ -41,21 +41,23 @@ class EntryUtility
     }
 
     /**
-     * @param array $array
-     * @return mixed
+     * @param Entry[] $entries
+     * @return array{reference: Entry[], feature: Entry[], release: Entry[]}
      */
-    public function sortDirectoryEntries(array $array): array
+    public function groupEntries(array $entries): array
     {
-        // alphabetic order
-        asort($array);
-        // custom order
-        usort($array, function ($a, $b) {
-            $order = ['main', 'master', 'stage', 'test', 'release'];
-            $pos_a = $this->searchArrayLike($a->getName(), $order);
-            $pos_b = $this->searchArrayLike($b->getName(), $order);
-            return $pos_a - $pos_b;
-        });
-        return $array;
+        $groups = ['reference' => [], 'feature' => [], 'release' => []];
+        foreach ($entries as $entry) {
+            $groups[in_array($entry->getCategory(), ['feature', 'release'], true) ? $entry->getCategory() : 'reference'][] = $entry;
+        }
+
+        $order = ['main', 'master', 'stage', 'test'];
+        usort($groups['reference'], fn (Entry $a, Entry $b) => [$this->searchArrayLike($a->getName(), $order), $a->getName()] <=> [$this->searchArrayLike($b->getName(), $order), $b->getName()]);
+        // most recently deployed first, that is what is being worked on
+        usort($groups['feature'], static fn (Entry $a, Entry $b) => $b->getDeployment()->timestamp <=> $a->getDeployment()->timestamp);
+        usort($groups['release'], static fn (Entry $a, Entry $b) => version_compare(ltrim($b->getTag(), 'v'), ltrim($a->getTag(), 'v')));
+
+        return $groups;
     }
 
     /**

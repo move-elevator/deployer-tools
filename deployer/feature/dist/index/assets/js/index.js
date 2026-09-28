@@ -21,3 +21,17 @@ if (navigator.clipboard) {
         });
     });
 }
+
+const filter = document.getElementById('instance-filter');
+if (filter) {
+    const instances = [...document.querySelectorAll('.instance')];
+    const groups = [...document.querySelectorAll('.instance-group')];
+    const empty = document.querySelector('.filter-empty');
+    filter.closest('label').hidden = false;
+    filter.addEventListener('input', () => {
+        const query = filter.value.trim().toLowerCase();
+        instances.forEach((instance) => { instance.hidden = !instance.dataset.search.includes(query); });
+        groups.forEach((group) => { group.hidden = query !== '' && !group.querySelector('.instance:not([hidden])'); });
+        empty.hidden = instances.some((instance) => !instance.hidden);
+    });
+}

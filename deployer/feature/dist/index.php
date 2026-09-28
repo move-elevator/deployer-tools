@@ -39,41 +39,37 @@ header('X-Robots-Tag: noindex, nofollow');
     </head>
     <body>
         <?php echo $templateService->renderDiskSpace($ioService) ?>
-        <header class="container" style="padding-bottom: 0">
+        <header class="container">
             <nav>
                 <ul>
                     <li>
                         <hgroup>
-                            <h2><?php echo $config['projectName'] ?> <div style="display: inline-block; width: 25px; position: absolute; margin-left: 5px;"><?php echo $templateService->getApplicationType($config['applicationType']) ?></div></h2>
-                            <h3 data-tooltip="The feature branch deployment describes the deployment and initialization process of multiple application instances on the same host. The feature instances are used for testing purposes and managing the release workflow.">Feature Branch Deployment</h3>
+                            <h1><?php echo $config['projectName'] ?> <span class="app-type" aria-hidden="true"><?php echo $templateService->getApplicationType($config['applicationType']) ?></span></h1>
+                            <p>Feature Branch Deployment</p>
                         </hgroup>
                     </li>
                 </ul>
                 <ul>
-                    <?php echo $templateService->listAdditionalLinks($config['additionalLinks']) ?>
+                    <?php echo $templateService->renderAdditionalLinks($config['additionalLinks']) ?>
                     <?php if ($logo): ?>
                     <li>
-                        <img title="<?php echo $projectTitle ?>" alt="<?php echo $projectTitle ?>" width="100" src="<?php echo $logo ?>" />
+                        <img class="logo" title="<?php echo $projectTitle ?>" alt="<?php echo $projectTitle ?>" width="56" src="<?php echo $logo ?>" />
                     </li>
                     <?php endif ?>
                 </ul>
             </nav>
         </header>
         <main class="container">
-            <section>
-                <table>
-                    <tbody>
-                        <?php
-                        /**
-                         * List all available feature branches
-                         */
-
-                        $entries = $ioService->getDirectoryEntries(realpath(dirname(__FILE__)) . '/..');
-                        echo $templateService->renderEntries($entries);
-                        ?>
-                    </tbody>
-                </table>
-            </section>
+            <?php $entries = $ioService->getDirectoryEntries(realpath(dirname(__FILE__)) . '/..') ?>
+            <div class="toolbar">
+                <?php echo $templateService->renderOverview($entries, $ioService) ?>
+                <!-- revealed by index.js, filtering needs JavaScript -->
+                <label class="filter" hidden>
+                    <span class="visually-hidden">Filter instances</span>
+                    <input type="search" id="instance-filter" placeholder="Filter by branch, issue or summary" autocomplete="off">
+                </label>
+            </div>
+            <?php echo $templateService->renderInstances((new \MoveElevator\FeatureIndex\Utility\EntryUtility())->groupEntries($entries)) ?>
         </main>
     </body>
 </html>
