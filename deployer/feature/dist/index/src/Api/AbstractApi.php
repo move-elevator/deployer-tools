@@ -12,10 +12,10 @@ abstract class AbstractApi
 
     // cache files are PHP files returning the data, since the cache directory is inside the web root
     // and must not serve the cached responses as plain text
-    protected function getCache(string $key, string $cachePath = self::CACHE_PATH, int $cacheLifeTime = self::CACHE_LIFETIME): ?array
+    protected function getCache(string $key): ?array
     {
-        $filePath = $cachePath . $key . '.php';
-        if (!file_exists($filePath) || (filemtime($filePath) + $cacheLifeTime) <= time()) {
+        $filePath = static::CACHE_PATH . $key . '.php';
+        if (!file_exists($filePath) || (filemtime($filePath) + static::CACHE_LIFETIME) <= time()) {
             return null;
         }
 
@@ -23,12 +23,12 @@ abstract class AbstractApi
         return is_array($data) ? $data : null;
     }
 
-    protected function setCache(string $key, array $data, string $cachePath = self::CACHE_PATH): void
+    protected function setCache(string $key, array $data): void
     {
         $ioService = new IOService();
-        $ioService->directoryExists($cachePath, true);
+        $ioService->directoryExists(static::CACHE_PATH, true);
 
         umask(0002);
-        file_put_contents($cachePath . $key . '.php', "<?php\n\nreturn " . var_export($data, true) . ";\n", LOCK_EX);
+        file_put_contents(static::CACHE_PATH . $key . '.php', "<?php\n\nreturn " . var_export($data, true) . ";\n", LOCK_EX);
     }
 }
