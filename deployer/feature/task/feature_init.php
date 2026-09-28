@@ -45,10 +45,13 @@ task('feature:select', function () {
 function initFeature(?string $feature = null): ?string
 {
     debug('Initializing feature instance');
-    set('deploy_base_path', get('deploy_path'));
     // check if feature was already initialized
-    if (has('feature_initialized') && get('feature_initialized')) return get('feature');;
+    if (has('feature_initialized') && get('feature_initialized')) return get('feature');
 
+    // capture the un-extended deploy_path once per process, before it gets extended
+    // with the feature segment below - a later call in the same run must not re-derive
+    // this from the already-extended deploy_path
+    set('deploy_base_path', get('deploy_path'));
     prepareDeployerConfiguration();
     // use feature variable or feature input option or ask for feature branch
     // (?: would discard a caller-provided "0", which is a valid instance name)
