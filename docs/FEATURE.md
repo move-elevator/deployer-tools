@@ -227,11 +227,15 @@ This uploads the index application to the host and creates a symbolic link to th
 ├── .fbd/
 │   ├── index/
 │   ├── index.php
-│   ├── index.json
+│   ├── index.config.php
 │   ├── logo.png (optionally)
 │   └── background.png (optionally)
 └── index.php -> .fbd/index.php
 ```
+
+The index configuration, including `feature_index_jira_auth`, is stored as `index.config.php` so the web server executes it instead of serving it as plain text. Cached Jira responses below `index/var/` are PHP files for the same reason. Earlier versions stored a plain `index.json` and raw JSON cache files there, `feature:index` removes both.
+
+Issue details (type, status, assignee) are only requested from Jira when `feature_index_jira_api` is set (e.g. `https://acme.atlassian.net/rest/api/3/issue/`, empty by default). Non-public Jira instances additionally need `feature_index_jira_auth` (base64 encoded `email:api-token`). Failed requests are neither shown nor cached. The last deployment date is read from Deployer's `.dep/releases_log` of each instance.
 
 ### Pathing
 
@@ -279,7 +283,7 @@ Because instance names become a DNS hostname label in this mode (see the table u
 
 **Migrating an existing host:** switching `feature_url_pattern` on for a host that already has path-mode instances changes their hostname-safe name (e.g. `TEST-01` becomes `test-01`), which would otherwise orphan the existing directory while creating an empty new one under the new name. To guard against that, `feature:init`/`feature:setup`/`feature:stop` fail with an error if a directory under the pre-switch name still exists. Remove existing instances first against the previous configuration (`feature:stop` or `feature:cleanup`), then enable subdomain mode.
 
-If you use `feature:index`, re-run it (`feature:index`) after enabling subdomain mode: an already-deployed `index.json` predates the new `featureUrlPattern` key and needs to be re-rendered for the index page to link to the subdomains. Set `feature_index_app_path` relative to the application root (e.g. `''`), not to `current/public/`, since there is no path prefix to traverse in this mode.
+If you use `feature:index`, re-run it (`feature:index`) after enabling subdomain mode: an already-deployed index configuration predates the new `featureUrlPattern` key and needs to be re-rendered for the index page to link to the subdomains. Set `feature_index_app_path` relative to the application root (e.g. `''`), not to `current/public/`, since there is no path prefix to traverse in this mode.
 
 ### Scheduler
 

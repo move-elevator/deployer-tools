@@ -32,7 +32,7 @@ class EntryUtility
     {
         $entry = new Entry($name);
 
-        $entry->setLastUpdated(date('d.m.Y', filectime($basePath . '/' .  $name)));
+        $entry->setLastUpdated(date('d.m.Y', $this->getLastDeployTimestamp($basePath . '/' . $name)));
         $entry->setCategory($this->getEntryCategory($name));
         $entry->setTag($this->getEntryTag($name));
         $entry->setIssue($this->getEntryIssue($name));
@@ -74,12 +74,26 @@ class EntryUtility
     }
 
     /**
+     * Deployer appends one JSON line per release to .dep/releases_log, its last created_at is the
+     * last deployment. Falls back to the directory mtime for instances without a release yet.
+     */
+    private function getLastDeployTimestamp(string $instancePath): int
+    {
+        $releasesLog = $instancePath . '/.dep/releases_log';
+        $lines = is_readable($releasesLog) ? file($releasesLog, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) : false;
+        $lastRelease = $lines ? json_decode((string)end($lines), true) : null;
+        $timestamp = is_array($lastRelease) ? strtotime((string)($lastRelease['created_at'] ?? '')) : false;
+
+        return $timestamp !== false ? $timestamp : filemtime($instancePath);
+    }
+
+    /**
      * @param string $name
      * @return string
      */
     private function getEntryCategory(string $name): string
     {
-        if (preg_match('/(release)-(\d+.\d+.\d+)/' . $this->regexFlags, $name)) return 'release';
+        if (preg_match('/(release)-(\d+\.\d+\.\d+)/' . $this->regexFlags, $name)) return 'release';
         if (preg_match('/([A-Z]+)-(\d+)/' . $this->regexFlags, $name)) return 'feature';
         return $name;
     }
@@ -90,7 +104,7 @@ class EntryUtility
      */
     private function getEntryTag(string $name): string
     {
-        if (preg_match('/(release)-(\d+.\d+.\d+)/' . $this->regexFlags, $name, $version)) return 'v' . $version[2];
+        if (preg_match('/(release)-(\d+\.\d+\.\d+)/' . $this->regexFlags, $name, $version)) return 'v' . $version[2];
         return '';
     }
 

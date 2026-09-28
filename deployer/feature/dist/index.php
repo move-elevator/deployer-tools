@@ -8,17 +8,23 @@ $ioService = new \MoveElevator\FeatureIndex\Service\IOService();
 $templateService = new \MoveElevator\FeatureIndex\Service\TemplateService();
 
 $config = $configReader->initConfig();
+// the title is set in the project's deploy.php and may contain markup for the heading, e.g. <em>
+$projectTitle = htmlspecialchars(strip_tags($config['projectName']), ENT_QUOTES);
+
+// feature instances are test systems, keep the overview out of search engines
+header('X-Robots-Tag: noindex, nofollow');
 
 ?>
-
-<html>
+<!doctype html>
+<html lang="en">
     <head>
         <meta charset='utf-8'>
         <meta name='viewport' content='width=device-width, initial-scale=1, minimum-scale=1'>
+        <meta name='robots' content='noindex, nofollow'>
         <link rel='icon' type='image/png' href='.fbd/logo.png' />
 
-        <title><?php echo strip_tags($config['projectName']) ?></title>
-        <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@1.5.12/css/pico.min.css">
+        <title><?php echo $projectTitle ?></title>
+        <link rel="stylesheet" href=".fbd/index/assets/css/pico.min.css">
         <link rel="stylesheet" href=".fbd/index/assets/css/style.css">
         <style>
             <?php if (file_exists('.fbd/background.png')) {
@@ -42,7 +48,7 @@ $config = $configReader->initConfig();
                 <ul>
                     <?php echo $templateService->listAdditionalLinks($config['additionalLinks']) ?>
                     <li>
-                        <img title="<?php echo $config['projectName'] ?>" alt="<?php echo $config['projectName'] ?>" width="100px" src=".fbd/logo.png" />
+                        <img title="<?php echo $projectTitle ?>" alt="<?php echo $projectTitle ?>" width="100px" src=".fbd/logo.png" />
                     </li>
                 </ul>
             </nav>

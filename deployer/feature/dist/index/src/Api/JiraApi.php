@@ -8,6 +8,8 @@ class JiraApi extends AbstractApi
 {
     const CACHE_PATH = __DIR__ . '/../../var/cache/jira/';
     const CACHE_LIFETIME = 300;
+    const REQUEST_TIMEOUT = 5;
+    const FIELDS = 'summary,issuetype,priority,assignee,status';
 
     protected string $url;
     protected string $auth;
@@ -16,51 +18,60 @@ class JiraApi extends AbstractApi
         $this->auth = $auth;
     }
 
-    /**
-     * @param \MoveElevator\FeatureIndex\Model\Entry $entry
-     * @return void
-     */
-    public function checkIssue(Entry &$entry) {
-        if ($entry->getIssue() === '' || (!$this->url && !$this->auth)) return;
+    public function checkIssue(Entry $entry): void
+    {
+        if ($entry->getIssue() === '' || $this->url === '') return;
 
-        $response = $this->request($entry->getIssue());
+        $fields = $this->request($entry->getIssue())['fields'] ?? null;
+        if (!is_array($fields)) return;
 
-        if (is_null($response)) return;
-        $issueData = [];
-        $issueData['summary'] = $response['fields']['summary'];
-        $issueData['type']['name'] =  $response['fields']['issuetype']['name'];
-        $issueData['type']['icon'] =  $response['fields']['issuetype']['iconUrl'];
-        $issueData['priority']['name'] =  $response['fields']['priority']['name'];
-        $issueData['priority']['icon'] =  $response['fields']['priority']['iconUrl'];
-        $issueData['assignee']['name'] =  $response['fields']['assignee'] ? $response['fields']['assignee']['displayName'] : 'NA';
-        $issueData['status']['name'] =  $response['fields']['status']['name'];
-        $issueData['status']['icon'] =  $response['fields']['status']['iconUrl'];
-        $issueData['status']['color'] =  $response['fields']['status']['statusCategory']['colorName'];
-
-        $entry->setIssueData($issueData);
+        $entry->setIssueData([
+            'summary' => $fields['summary'] ?? '',
+            'type' => [
+                'name' => $fields['issuetype']['name'] ?? '',
+                'icon' => $fields['issuetype']['iconUrl'] ?? '',
+            ],
+            'priority' => [
+                'name' => $fields['priority']['name'] ?? '',
+                'icon' => $fields['priority']['iconUrl'] ?? '',
+            ],
+            'assignee' => [
+                'name' => $fields['assignee']['displayName'] ?? 'NA',
+            ],
+            'status' => [
+                'name' => $fields['status']['name'] ?? '',
+                'icon' => $fields['status']['iconUrl'] ?? '',
+                'color' => $fields['status']['statusCategory']['colorName'] ?? '',
+            ],
+        ]);
     }
 
-    /**
-     * @param string $issue
-     * @return mixed
-     */
-    private function request(string $issue)
+    private function request(string $issue): ?array
     {
-        if ($this->getCache($issue, self::CACHE_PATH, self::CACHE_LIFETIME)) return $this->getCache($issue, self::CACHE_PATH, self::CACHE_LIFETIME);
+        $cached = $this->getCache($issue, self::CACHE_PATH, self::CACHE_LIFETIME);
+        if ($cached !== null) return $cached;
 
         $curl_session = curl_init();
-        curl_setopt($curl_session ,CURLOPT_URL, $this->url . $issue);
+        curl_setopt($curl_session, CURLOPT_URL, $this->url . rawurlencode($issue) . '?fields=' . self::FIELDS);
         curl_setopt($curl_session, CURLOPT_RETURNTRANSFER, TRUE);
         curl_setopt($curl_session, CURLOPT_SSL_VERIFYHOST, 2);
-        curl_setopt($curl_session, CURLOPT_CUSTOMREQUEST, "GET");
-        curl_setopt($curl_session, CURLOPT_HTTPHEADER, [
-                'Content-Type: application/json',
-                'Authorization: Basic ' . $this->auth
-        ]);
-        $result = curl_exec($curl_session );
-        curl_close($curl_session );
+        curl_setopt($curl_session, CURLOPT_TIMEOUT, self::REQUEST_TIMEOUT);
+        // without credentials only public Jira instances answer, everything else is dropped below
+        curl_setopt($curl_session, CURLOPT_HTTPHEADER, array_filter([
+                'Accept: application/json',
+                $this->auth !== '' ? 'Authorization: Basic ' . $this->auth : null,
+        ]));
+        $result = curl_exec($curl_session);
+        $status = curl_getinfo($curl_session, CURLINFO_RESPONSE_CODE);
 
-        $this->setCache($issue, $result, self::CACHE_PATH, self::CACHE_LIFETIME);
-        return json_decode($result, true);
+        // error responses (e.g. 401 without valid credentials, 404 for unknown issues) are neither
+        // rendered nor cached, otherwise their empty fields show up as issue data for five minutes
+        if (!is_string($result) || $status !== 200) return null;
+
+        $data = json_decode($result, true);
+        if (!is_array($data)) return null;
+
+        $this->setCache($issue, $data, self::CACHE_PATH);
+        return $data;
     }
 }

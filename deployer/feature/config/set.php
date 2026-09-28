@@ -74,7 +74,8 @@ set('feature_index_app_path', '');
 //]);
 //set('feature_index_app_type', 'symfony');
 set('feature_index_jira_browse', 'https://acme.atlassian.net/browse/');
-set('feature_index_jira_api', 'https://acme.atlassian.net/rest/api/1/issue/');
+// e.g. 'https://acme.atlassian.net/rest/api/3/issue/', issue details are only requested when set
+set('feature_index_jira_api', '');
 set('feature_index_jira_auth', '');
 set('feature_index_git_branch', '');
 

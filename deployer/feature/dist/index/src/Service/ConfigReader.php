@@ -4,16 +4,12 @@ namespace MoveElevator\FeatureIndex\Service;
 
 class ConfigReader
 {
+    private const CONFIG_PATH = __DIR__ . '/../../../index.config.php';
 
-    public array $config;
+    private static ?array $config = null;
 
-    /**
-     * @return mixed
-     */
-    public function initConfig()
+    public function initConfig(): array
     {
-        $strJsonFileContents = file_get_contents('.fbd/index.json');
-        $this->config = \json_decode($strJsonFileContents, true);
-        return $this->config;
+        return self::$config ??= require self::CONFIG_PATH;
     }
 }

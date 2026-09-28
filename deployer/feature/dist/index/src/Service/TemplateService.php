@@ -19,10 +19,11 @@ class TemplateService
         $config = $configReader->initConfig();
 
         foreach ($entries as $entry) {
+            $category = $this->escape($entry->getCategory());
             $html .= "<tr>" .
                 "<td class='branch'>" .
-                "<a class='pill-wrapper' href='" . $config['git']['branch'] . $entry->getName() . "' target='_blank'><div class='pill' data-tooltip='" . ucfirst($entry->getCategory()) . " branch' data-type='" . $entry->getCategory() . "'>" . strtoupper($entry->getCategory()[0]) . "</div></a>" .
-                "<a class='entry' href='" . htmlspecialchars($ioService->getEntryAppPath($entry), ENT_QUOTES) . "'><strong>" . $entry->getName() . "</strong></a> <sup>" . $entry->getTag() . "</sup>" .
+                "<a class='pill-wrapper' href='" . $this->escape($config['git']['branch'] . $entry->getName()) . "' target='_blank' rel='noopener'><div class='pill' data-tooltip='" . ucfirst($category) . " branch' data-type='" . $category . "'>" . strtoupper($category[0]) . "</div></a>" .
+                "<a class='entry' href='" . $this->escape($ioService->getEntryAppPath($entry)) . "'><strong>" . $this->escape($entry->getName()) . "</strong></a> <sup>" . $this->escape($entry->getTag()) . "</sup>" .
                 "</td>" .
                 "<td style='text-align: right;'>" .
                 $this->renderIssueData($entry) .
@@ -69,19 +70,16 @@ class TemplateService
     }
 
     /**
-     * @param string $links
-     * @return string
+     * @param array<string, string> $links title => url
      */
-    public function listAdditionalLinks(string $links): string
+    public function listAdditionalLinks(array $links): string
     {
-        if ($links == '') return '';
+        if ($links === []) return '';
 
-        $html = "<li><details role='list' dir='rtl'><summary aria-haspopup='listbox' role='link'></summary><ul role='listbox'>";
-        $items = explode(',', $links);
+        $html = "<li><details role='list' dir='rtl'><summary aria-haspopup='listbox' role='link' aria-label='Additional links'></summary><ul role='listbox'>";
 
-        foreach ($items as $item) {
-            $link = explode('|', $item);
-            $html .= "<li><a href='" . $link[1] . "' target='_blank'>" . $link[0] . "</a></li>";
+        foreach ($links as $title => $url) {
+            $html .= "<li><a href='" . $this->escape($url) . "' target='_blank' rel='noopener'>" . $this->escape($title) . "</a></li>";
         }
         $html .= "</ul></details></li>";
         return $html;
@@ -108,7 +106,7 @@ class TemplateService
      */
     private function renderLastUpdated(Entry $entry): string
     {
-        return "<kbd data-tooltip='Last modification date'>" . $entry->getLastUpdated() . "</kbd>";
+        return "<kbd data-tooltip='Last deployment'>" . $this->escape($entry->getLastUpdated()) . "</kbd>";
     }
 
     /**
@@ -117,13 +115,38 @@ class TemplateService
      */
     private function renderIssueData(Entry $entry): string
     {
+        if ($entry->getIssue() === '') return '';
+
         $entryUtility = new EntryUtility();
-        $jiraIcon = "<svg xmlns='http://www.w3.org/2000/svg'  viewBox='0 0 30 30' width='16px' height='16px'><path d='M 15 2.59375 C 12.613 5.01075 12.598 8.9300312 15 11.332031 L 18.667969 15 L 16.414062 17.253906 C 18.151062 18.991906 18.931625 21.350625 18.765625 23.640625 L 23.037109 19.369141 L 26.712891 15.693359 C 27.096891 15.310359 27.095891 14.689641 26.712891 14.306641 L 19.369141 6.9628906 L 15 2.59375 z M 11.234375 6.359375 L 6.9628906 10.630859 L 6.8398438 10.755859 L 3.2890625 14.304688 C 2.9060625 14.688688 2.9060625 15.309359 3.2890625 15.693359 L 13.966797 26.371094 L 15 27.40625 C 17.387 24.98925 17.402 21.069969 15 18.667969 L 11.332031 15 L 13.585938 12.746094 C 11.848937 11.008094 11.068375 8.649375 11.234375 6.359375 z'/></svg>";
-        $issueType = !empty($entry->getIssueData()) ? " <span data-tooltip='Jira issue type: " . $entry->getIssueData()['type']['name'] . "'><img src='" . $entry->getIssueData()['type']['icon'] . "'/></span>" : "";
-        $issueStatus = !empty($entry->getIssueData()) ? "<span class='status " . $entry->getIssueData()['status']['color'] . "' data-tooltip='Jira issue status: " . $entry->getIssueData()['status']['name'] . "'>" . $entry->getIssueData()['status']['name'][0] . "</span>" : "";
-        $issueAssigneeInitialies = !empty($entry->getIssueData()) ? implode('', array_map(function($value) { return substr($value, 0, 1); }, explode(' ', $entry->getIssueData()['assignee']['name']))) : "";
-        $issueAssignee = !empty($entry->getIssueData()) ? "<span class='pill person' data-tooltip='Jira issue assignee: " . $entry->getIssueData()['assignee']['name'] . "'>" . $issueAssigneeInitialies . "</span>" : "";
-        return $entry->getIssue() ? "<a class='pill' href='" . $entryUtility->getIssueLink($entry) . "' target='_blank'>$jiraIcon " . "<span data-tooltip='Jira issue: " . $entry->getIssue() . "' >" . $entry->getIssue() . "</span>$issueType$issueStatus$issueAssignee</a>" : "";
+        $jiraIcon = "<svg xmlns='http://www.w3.org/2000/svg'  viewBox='0 0 30 30' width='16px' height='16px' aria-hidden='true'><path d='M 15 2.59375 C 12.613 5.01075 12.598 8.9300312 15 11.332031 L 18.667969 15 L 16.414062 17.253906 C 18.151062 18.991906 18.931625 21.350625 18.765625 23.640625 L 23.037109 19.369141 L 26.712891 15.693359 C 27.096891 15.310359 27.095891 14.689641 26.712891 14.306641 L 19.369141 6.9628906 L 15 2.59375 z M 11.234375 6.359375 L 6.9628906 10.630859 L 6.8398438 10.755859 L 3.2890625 14.304688 C 2.9060625 14.688688 2.9060625 15.309359 3.2890625 15.693359 L 13.966797 26.371094 L 15 27.40625 C 17.387 24.98925 17.402 21.069969 15 18.667969 L 11.332031 15 L 13.585938 12.746094 C 11.848937 11.008094 11.068375 8.649375 11.234375 6.359375 z'/></svg>";
+        $issue = $this->escape($entry->getIssue());
+
+        return "<a class='pill' href='" . $this->escape($entryUtility->getIssueLink($entry)) . "' target='_blank' rel='noopener'>$jiraIcon " .
+            "<span data-tooltip='Jira issue: $issue'>$issue</span>" .
+            $this->renderIssueDetails($entry->getIssueData()) .
+            "</a>";
+    }
+
+    private function renderIssueDetails(array $issueData): string
+    {
+        if ($issueData === []) return '';
+
+        $type = $this->escape($issueData['type']['name']);
+        $status = $this->escape($issueData['status']['name']);
+        $assignee = $this->escape($issueData['assignee']['name']);
+        $assigneeInitials = $this->escape(implode('', array_map(
+            static fn (string $namePart) => mb_substr($namePart, 0, 1),
+            explode(' ', $issueData['assignee']['name'])
+        )));
+
+        return " <span data-tooltip='Jira issue type: $type'><img src='" . $this->escape($issueData['type']['icon']) . "' alt='$type'/></span>" .
+            "<span class='status " . $this->escape($issueData['status']['color']) . "' data-tooltip='Jira issue status: $status'>" . $this->escape(mb_substr($issueData['status']['name'], 0, 1)) . "</span>" .
+            "<span class='pill person' data-tooltip='Jira issue assignee: $assignee'>$assigneeInitials</span>";
+    }
+
+    private function escape(string $value): string
+    {
+        return htmlspecialchars($value, ENT_QUOTES);
     }
 
 }
