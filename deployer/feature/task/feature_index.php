@@ -66,7 +66,31 @@ function renderIndexTemplate(): void
     // ToDo: fix permissions
     // index/var/ is uploaded by the deploy user, but the web server user writes the Jira cache below it
     runExtended("cd {{deploy_path}} && chmod 644 {{feature_directory_path}}index.* {{feature_directory_path}}.htaccess && chmod 775 {{feature_directory_path}}index/ {{feature_directory_path}}index/var && chmod -R 755 {{feature_directory_path}}index/assets && chmod -R 755 {{feature_directory_path}}index/src && chmod 755 {{feature_directory_path}}index/autoload.php");
+    restrictIndexConfigPermissions($featureDirectoryPath . 'index.config.php', $config['jira']['auth'] !== '');
 
+}
+
+/**
+ * The config holds the Jira credentials, so hide it from other local users: owned by the deploy
+ * user and the web server group with mode 640, which works whether PHP runs as the deploy user or
+ * as the web server user. Without a matching group the file stays 644, a narrower mode would lock
+ * out the web server.
+ *
+ * @throws \Deployer\Exception\RunException
+ * @throws \Deployer\Exception\Exception
+ * @throws \Deployer\Exception\TimeoutException
+ */
+function restrictIndexConfigPermissions(string $configPath, bool $containsCredentials): void
+{
+    $group = has('requirements_user_group') ? get('requirements_user_group') : '';
+    if ($group !== '' && test('chgrp ' . escapeshellarg($group) . ' ' . escapeshellarg($configPath))) {
+        runExtended('chmod 640 ' . escapeshellarg($configPath));
+        return;
+    }
+
+    if ($containsCredentials) {
+        warning("$configPath contains the Jira credentials and stays readable for all local users, set requirements_user_group to the web server group the deploy user belongs to");
+    }
 }
 
 /**
@@ -82,8 +106,15 @@ function uploadIndexConfig(array $config, string $remoteTarget): void
 {
     // unique temp file outside the project, it holds credentials and hosts may be deployed in parallel
     $temporaryFileName = tempnam(sys_get_temp_dir(), 'deployer-index-config');
+    if ($temporaryFileName === false) {
+        throw error('Could not create a temporary file for the index config');
+    }
     try {
-        file_put_contents($temporaryFileName, "<?php\n\nreturn " . var_export($config, true) . ";\n");
+        // an incomplete file would replace the working config on the host
+        $content = "<?php\n\nreturn " . var_export($config, true) . ";\n";
+        if (file_put_contents($temporaryFileName, $content) !== strlen($content)) {
+            throw error("Could not write the index config to $temporaryFileName");
+        }
         upload($temporaryFileName, $remoteTarget);
     } finally {
         unlink($temporaryFileName);
