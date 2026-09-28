@@ -228,12 +228,15 @@ This uploads the index application to the host and creates a symbolic link to th
 │   ├── index/
 │   ├── index.php
 │   ├── index.config.php
+│   ├── .htaccess
 │   ├── logo.svg or logo.png (optionally, SVG preferred)
 │   └── background.png (optionally)
 └── index.php -> .fbd/index.php
 ```
 
 The index configuration, including `feature_index_jira_auth`, is stored as `index.config.php` so the web server executes it instead of serving it as plain text. Cached Jira responses below `index/var/` are PHP files for the same reason. Earlier versions stored a plain `index.json` and raw JSON cache files there, `feature:index` removes both.
+
+On Apache, the shipped `.htaccess` files additionally deny HTTP access to `index.config.php`, `index.json`, `index/src/` and `index/var/`. On nginx, add the equivalent rule to the server block, see [Web server](WEBSERVER.md#feature-index).
 
 Issue details (type, status, assignee) are only requested from Jira when `feature_index_jira_api` is set (e.g. `https://acme.atlassian.net/rest/api/3/issue/`, empty by default). Non-public Jira instances additionally need `feature_index_jira_auth` (base64 encoded `email:api-token`). Failed requests are neither shown nor cached. The last deployment date is read from Deployer's `.dep/releases_log` of each instance.
 

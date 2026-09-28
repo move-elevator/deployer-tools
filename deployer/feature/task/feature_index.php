@@ -59,10 +59,13 @@ function renderIndexTemplate(): void
     $featureDirectoryPath = get('deploy_path') . '/' . get('feature_directory_path');
     upload(__DIR__ . '/../dist/index' ,$featureDirectoryPath);
     upload(__DIR__ . '/../dist/index.php' ,$featureDirectoryPath . 'index.php');
+    // Apache only, nginx needs the equivalent rules in the server block (see docs/WEBSERVER.md)
+    upload(__DIR__ . '/../dist/index.htaccess' ,$featureDirectoryPath . '.htaccess');
     runExtended("cd " . get('deploy_path') . " && ln -sf " . $featureDirectoryPath . "index.php index.php");
     uploadIndexConfig($config, $featureDirectoryPath . 'index.config.php');
     // ToDo: fix permissions
-    runExtended("cd {{deploy_path}} && chmod 644 {{feature_directory_path}}index.* && chmod 775 {{feature_directory_path}}index/ && chmod -R 755 {{feature_directory_path}}index/assets && chmod -R 755 {{feature_directory_path}}index/src && chmod 755 {{feature_directory_path}}index/autoload.php");
+    // index/var/ is uploaded by the deploy user, but the web server user writes the Jira cache below it
+    runExtended("cd {{deploy_path}} && chmod 644 {{feature_directory_path}}index.* {{feature_directory_path}}.htaccess && chmod 775 {{feature_directory_path}}index/ {{feature_directory_path}}index/var && chmod -R 755 {{feature_directory_path}}index/assets && chmod -R 755 {{feature_directory_path}}index/src && chmod 755 {{feature_directory_path}}index/autoload.php");
 
 }
 

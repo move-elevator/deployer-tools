@@ -1,0 +1,6 @@
+# Uploaded as .fbd/.htaccess by feature:index.
+# Only these file names are denied, since in subdomain mode an instance below .fbd/instances/
+# can be a document root and inherits this file.
+<FilesMatch "^index\.(config\.php|json)$">
+    Require all denied
+</FilesMatch>

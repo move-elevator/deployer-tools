@@ -1,6 +1,6 @@
 # Web server
 
-The feature branch deployment supports both **Apache** and **nginx** as web server. The deployment tooling itself is web server agnostic — it uses filesystem symlinks for URL shortening and does not generate or depend on any web server configuration files. This also holds for [subdomain mode](#subdomain-mode): the tooling only ever produces a symlink and a hostname-safe directory name, the vhost that routes a subdomain to it is set up once, outside the tooling.
+The feature branch deployment supports both **Apache** and **nginx** as web server. The deployment tooling itself is web server agnostic — it uses filesystem symlinks for URL shortening and does not generate or depend on any web server configuration files, apart from the `.htaccess` files protecting the [feature index](#feature-index). This also holds for [subdomain mode](#subdomain-mode): the tooling only ever produces a symlink and a hostname-safe directory name, the vhost that routes a subdomain to it is set up once, outside the tooling.
 
 ## Apache
 
@@ -84,6 +84,18 @@ server {
     }
 }
 ```
+
+### Feature index
+
+The [feature index](FEATURE.md) ships `.htaccess` files denying HTTP access to its configuration, PHP sources and Jira cache. nginx ignores them, so add this rule to the server block, above the `location ~ \.php$` block since nginx uses the first matching regex location:
+
+```nginx
+location ~ ^/\.fbd/(index\.json|index\.config\.php|index/(src|var)/) {
+    return 403;
+}
+```
+
+Adjust `.fbd` if `feature_directory_path` is changed.
 
 ## Subdomain mode
 
