@@ -43,6 +43,7 @@ kbd {
     font-size: 10px;
 }
 .status {
+    border-radius: 3px;
     padding: 3px 6px;
     min-width: 15px;
     margin: 0 5px;
@@ -55,6 +56,10 @@ kbd {
 }
 .status.yellow {
     background-color: #F9A825;
+    color: #1d1d1b;
+}
+.status.blue-gray {
+    background-color: #42526E;
 }
 .status.red {
     background-color: #D84315;
@@ -153,4 +158,71 @@ progress {
 }
 h3 {
     width: max-content;
+}
+.branch {
+    display: flex;
+    align-items: center;
+}
+.entry-details small {
+    display: block;
+    color: var(--muted-color);
+    font-size: .8rem;
+}
+td.issue, td.deployment {
+    text-align: right;
+}
+.deployment-meta {
+    display: block;
+    color: var(--muted-color);
+    font-size: .75rem;
+    margin-top: .25rem;
+}
+.badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: .7rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    vertical-align: middle;
+}
+.badge.stale {
+    background: #F9A825;
+    color: #1d1d1b;
+}
+.badge.locked {
+    background: #D84315;
+    color: #fff;
+}
+.links a, .copy-url {
+    color: var(--muted-color);
+    text-decoration: underline;
+}
+.copy-url {
+    display: inline;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: inherit;
+    cursor: pointer;
+}
+.copy-url:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+.links > :not([hidden]) ~ :not([hidden])::before {
+    content: '·';
+    display: inline-block;
+    margin: 0 .35em;
+    color: var(--muted-color);
+}
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
 }

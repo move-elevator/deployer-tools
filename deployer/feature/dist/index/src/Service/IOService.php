@@ -2,6 +2,7 @@
 
 namespace MoveElevator\FeatureIndex\Service;
 
+use MoveElevator\FeatureIndex\Api\JiraApi;
 use MoveElevator\FeatureIndex\Model\Entry;
 use MoveElevator\FeatureIndex\Utility\EntryUtility;
 
@@ -26,6 +27,8 @@ class IOService
             }
         }
 
+        $config = (new ConfigReader())->initConfig();
+        (new JiraApi($config['jira']['api'], $config['jira']['auth']))->loadIssues($directoryEntries);
 
         return $entryUtility->sortDirectoryEntries($directoryEntries);
     }

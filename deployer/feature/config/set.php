@@ -78,6 +78,10 @@ set('feature_index_jira_browse', 'https://acme.atlassian.net/browse/');
 set('feature_index_jira_api', '');
 set('feature_index_jira_auth', '');
 set('feature_index_git_branch', '');
+// linked per instance next to the application, relative to feature_index_app_path (set by the typo3 recipe)
+//set('feature_index_backend_path', 'typo3/');
+// feature instances without a deployment for this many days (or with a done Jira issue) are marked as stale
+set('feature_index_stale_days', 14);
 
 /**
  * Feature Stop

@@ -238,7 +238,17 @@ The index configuration, including `feature_index_jira_auth`, is stored as `inde
 
 On Apache, the shipped `.htaccess` files additionally deny HTTP access to `index.config.php`, `index.json`, `index/src/` and `index/var/`. On nginx, add the equivalent rule to the server block, see [Web server](WEBSERVER.md#feature-index).
 
-Issue details (type, status, assignee) are only requested from Jira when `feature_index_jira_api` is set (e.g. `https://acme.atlassian.net/rest/api/3/issue/`, empty by default). Non-public Jira instances additionally need `feature_index_jira_auth` (base64 encoded `email:api-token`). Failed requests are neither shown nor cached. The last deployment date is read from Deployer's `.dep/releases_log` of each instance.
+Issue details (type, status, assignee) are only requested from Jira when `feature_index_jira_api` is set (e.g. `https://acme.atlassian.net/rest/api/3/issue/`, empty by default). Non-public Jira instances additionally need `feature_index_jira_auth` (base64 encoded `email:api-token`). Failed requests are neither shown nor cached, the remaining issues are requested in parallel.
+
+Per instance the index shows:
+
+- the Jira issue summary, status, type and assignee
+- the last deployment (relative, absolute time as tooltip), the deploying user, the release and the short commit hash, read from Deployer's `.dep/releases_log` and `current/REVISION`
+- a `locked` badge while `.dep/deploy.lock` exists, i.e. a deployment is running or was aborted
+- a `stale` badge for feature instances without a deployment for `feature_index_stale_days` days (default `14`, `0` disables it) or with a done Jira issue, as a hint for `feature:stop` or `feature:cleanup`
+- links to the backend (`feature_index_backend_path`, `typo3/` for TYPO3), the git branch (`feature_index_git_branch`) and a button copying the instance URL
+
+The index page requires PHP 8.1 on the host.
 
 ### Pathing
 

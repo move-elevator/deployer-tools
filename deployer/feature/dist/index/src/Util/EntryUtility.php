@@ -2,13 +2,13 @@
 
 namespace MoveElevator\FeatureIndex\Utility;
 
-use MoveElevator\FeatureIndex\Api\JiraApi;
 use MoveElevator\FeatureIndex\Model\Entry;
 use MoveElevator\FeatureIndex\Service\ConfigReader;
+use MoveElevator\FeatureIndex\Service\DeploymentReader;
 
 class EntryUtility
 {
-    protected JiraApi $jiraApi;
+    protected DeploymentReader $deploymentReader;
     protected ConfigReader $configReader;
     protected array $config;
     // subdomain-mode instance names are lowercased, so category/issue detection below must
@@ -19,7 +19,7 @@ class EntryUtility
     {
         $this->configReader = new ConfigReader();
         $this->config = $this->configReader->initConfig();
-        $this->jiraApi = new JiraApi($this->config['jira']['api'], $this->config['jira']['auth']);
+        $this->deploymentReader = new DeploymentReader();
         $this->regexFlags = $this->isSubdomainMode() ? 'i' : '';
     }
 
@@ -32,12 +32,10 @@ class EntryUtility
     {
         $entry = new Entry($name);
 
-        $entry->setLastUpdated(date('d.m.Y', $this->getLastDeployTimestamp($basePath . '/' . $name)));
+        $entry->setDeployment($this->deploymentReader->read($basePath . '/' . $name, $basePath));
         $entry->setCategory($this->getEntryCategory($name));
         $entry->setTag($this->getEntryTag($name));
         $entry->setIssue($this->getEntryIssue($name));
-
-        $this->jiraApi->checkIssue($entry);
 
         return $entry;
     }
@@ -58,33 +56,6 @@ class EntryUtility
             return $pos_a - $pos_b;
         });
         return $array;
-    }
-
-    /**
-     * @param \MoveElevator\FeatureIndex\Model\Entry $entry
-     * @return string
-     */
-    public function getIssueLink(Entry $entry): string
-    {
-
-        $configReader = new ConfigReader();
-        $config = $configReader->initConfig();
-
-        return $entry->getIssue() ? $config['jira']['browse'] . $entry->getIssue() : '';
-    }
-
-    /**
-     * Deployer appends one JSON line per release to .dep/releases_log, its last created_at is the
-     * last deployment. Falls back to the directory mtime for instances without a release yet.
-     */
-    private function getLastDeployTimestamp(string $instancePath): int
-    {
-        $releasesLog = $instancePath . '/.dep/releases_log';
-        $lines = is_readable($releasesLog) ? file($releasesLog, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) : false;
-        $lastRelease = $lines ? json_decode((string)end($lines), true) : null;
-        $timestamp = is_array($lastRelease) ? strtotime((string)($lastRelease['created_at'] ?? '')) : false;
-
-        return $timestamp !== false ? $timestamp : filemtime($instancePath);
     }
 
     /**

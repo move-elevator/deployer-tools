@@ -42,6 +42,8 @@ function renderIndexTemplate(): void
         ],
         'additionalLinks' => has('feature_index_additional_links') ? get('feature_index_additional_links') : [],
         'featureUrlPattern' => isFeatureSubdomainMode() ? get('feature_url_pattern') : '',
+        'backendPath' => has('feature_index_backend_path') ? get('feature_index_backend_path') : '',
+        'staleDays' => (int)get('feature_index_stale_days'),
     ];
 
     debug('Preparing index template');

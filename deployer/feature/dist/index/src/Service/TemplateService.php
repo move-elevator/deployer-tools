@@ -3,10 +3,18 @@
 namespace MoveElevator\FeatureIndex\Service;
 
 use MoveElevator\FeatureIndex\Model\Entry;
-use MoveElevator\FeatureIndex\Utility\EntryUtility;
 
 class TemplateService
 {
+    private const SECONDS_PER_DAY = 86400;
+
+    protected array $config;
+
+    public function __construct()
+    {
+        $this->config = (new ConfigReader())->initConfig();
+    }
+
     /**
      * @param array $entries
      * @return string
@@ -15,21 +23,25 @@ class TemplateService
     {
         $html = '';
         $ioService = new IOService();
-        $configReader = new ConfigReader();
-        $config = $configReader->initConfig();
 
         foreach ($entries as $entry) {
             $category = $this->escape($entry->getCategory());
+            $appUrl = $ioService->getEntryAppPath($entry);
             $html .= "<tr>" .
-                "<td class='branch'>" .
-                "<a class='pill-wrapper' href='" . $this->escape($config['git']['branch'] . $entry->getName()) . "' target='_blank' rel='noopener'><div class='pill' data-tooltip='" . ucfirst($category) . " branch' data-type='" . $category . "'>" . strtoupper($category[0]) . "</div></a>" .
-                "<a class='entry' href='" . $this->escape($ioService->getEntryAppPath($entry)) . "'><strong>" . $this->escape($entry->getName()) . "</strong></a> <sup>" . $this->escape($entry->getTag()) . "</sup>" .
-                "</td>" .
-                "<td style='text-align: right;'>" .
+                "<td><div class='branch'>" .
+                "<div class='pill' data-tooltip='" . ucfirst($category) . " branch' data-type='" . $category . "'><span aria-hidden='true'>" . strtoupper($category[0]) . "</span><span class='visually-hidden'>" . ucfirst($category) . " branch</span></div>" .
+                "<div class='entry-details'>" .
+                "<a class='entry' href='" . $this->escape($appUrl) . "'><strong>" . $this->escape($entry->getName()) . "</strong></a> <sup>" . $this->escape($entry->getTag()) . "</sup>" .
+                $this->renderBadges($entry) .
+                $this->renderSummary($entry) .
+                $this->renderLinks($entry, $appUrl) .
+                "</div>" .
+                "</div></td>" .
+                "<td class='issue'>" .
                 $this->renderIssueData($entry) .
                 "</td>" .
-                "<td style='text-align: right;'>" .
-                $this->renderLastUpdated($entry) .
+                "<td class='deployment'>" .
+                $this->renderDeployment($entry) .
                 "</td>" .
                 "</tr>";
         }
@@ -100,13 +112,87 @@ class TemplateService
         }
     }
 
-    /**
-     * @param \MoveElevator\FeatureIndex\Model\Entry $entry
-     * @return string
-     */
-    private function renderLastUpdated(Entry $entry): string
+    private function renderBadges(Entry $entry): string
     {
-        return "<kbd data-tooltip='Last deployment'>" . $this->escape($entry->getLastUpdated()) . "</kbd>";
+        $html = '';
+        $lockedBy = $entry->getDeployment()->lockedBy;
+        if ($lockedBy !== null) {
+            $tooltip = 'Deployment running or aborted' . ($lockedBy !== '' ? ", locked by $lockedBy" : '');
+            $html .= " " . $this->renderBadge('locked', $tooltip);
+        }
+        $staleReason = $this->getStaleReason($entry);
+        if ($staleReason !== '') {
+            $html .= " " . $this->renderBadge('stale', "$staleReason, consider feature:stop");
+        }
+        return $html;
+    }
+
+    // the reason is repeated as visually hidden text, since tooltips are only reachable by mouse
+    private function renderBadge(string $type, string $reason): string
+    {
+        $reason = $this->escape($reason);
+        return "<span class='badge $type' data-tooltip='$reason'>$type<span class='visually-hidden'>: $reason</span></span>";
+    }
+
+    /**
+     * Only feature instances are cleanup candidates, the reference stage and releases are expected to live longer
+     */
+    private function getStaleReason(Entry $entry): string
+    {
+        if ($entry->getCategory() !== 'feature') return '';
+        if (($entry->getIssueData()['status']['category'] ?? '') === 'done') return 'Jira issue is done';
+
+        $staleDays = (int)($this->config['staleDays'] ?? 0);
+        $days = intdiv(time() - $entry->getDeployment()->timestamp, self::SECONDS_PER_DAY);
+        return $staleDays > 0 && $days >= $staleDays ? "No deployment for $days days" : '';
+    }
+
+    private function renderSummary(Entry $entry): string
+    {
+        $summary = $entry->getIssueData()['summary'] ?? '';
+        return $summary !== '' ? "<small class='summary'>" . $this->escape($summary) . "</small>" : '';
+    }
+
+    private function renderLinks(Entry $entry, string $appUrl): string
+    {
+        $links = [];
+        $backendPath = $this->config['backendPath'] ?? '';
+        if ($backendPath !== '') {
+            $links[] = "<a href='" . $this->escape(rtrim($appUrl, '/') . '/' . ltrim($backendPath, '/')) . "' target='_blank' rel='noopener'>Backend</a>";
+        }
+        if ($this->config['git']['branch'] !== '') {
+            $links[] = "<a href='" . $this->escape($this->config['git']['branch'] . $entry->getName()) . "' target='_blank' rel='noopener'>Branch</a>";
+        }
+        // revealed by index.js, the clipboard needs JavaScript
+        $links[] = "<button type='button' class='copy-url' data-copy-url='" . $this->escape($appUrl) . "' hidden>Copy URL</button>";
+
+        // separators are added in CSS, so none is left over next to the hidden copy button
+        return "<small class='links'>" . implode('', $links) . "</small>";
+    }
+
+    private function renderDeployment(Entry $entry): string
+    {
+        $deployment = $entry->getDeployment();
+        $meta = array_filter([
+            $deployment->user !== '' ? 'by ' . $deployment->user : '',
+            $deployment->release !== '' ? 'release ' . $deployment->release : '',
+            substr($deployment->revision, 0, 7),
+        ]);
+
+        return "<kbd data-placement='left' data-tooltip='Last deployment: " . date('d.m.Y H:i', $deployment->timestamp) . "'>" . $this->formatRelativeTime($deployment->timestamp) . "</kbd>" .
+            ($meta !== [] ? "<small class='deployment-meta'>" . $this->escape(implode(' · ', $meta)) . "</small>" : '');
+    }
+
+    private function formatRelativeTime(int $timestamp): string
+    {
+        $minutes = intdiv(max(0, time() - $timestamp), 60);
+        if ($minutes < 60) return $minutes <= 1 ? 'just now' : "$minutes minutes ago";
+
+        $hours = intdiv($minutes, 60);
+        if ($hours < 24) return $hours === 1 ? '1 hour ago' : "$hours hours ago";
+
+        $days = intdiv($hours, 24);
+        return $days === 1 ? 'yesterday' : "$days days ago";
     }
 
     /**
@@ -117,11 +203,10 @@ class TemplateService
     {
         if ($entry->getIssue() === '') return '';
 
-        $entryUtility = new EntryUtility();
         $jiraIcon = "<svg xmlns='http://www.w3.org/2000/svg'  viewBox='0 0 30 30' width='16px' height='16px' aria-hidden='true'><path d='M 15 2.59375 C 12.613 5.01075 12.598 8.9300312 15 11.332031 L 18.667969 15 L 16.414062 17.253906 C 18.151062 18.991906 18.931625 21.350625 18.765625 23.640625 L 23.037109 19.369141 L 26.712891 15.693359 C 27.096891 15.310359 27.095891 14.689641 26.712891 14.306641 L 19.369141 6.9628906 L 15 2.59375 z M 11.234375 6.359375 L 6.9628906 10.630859 L 6.8398438 10.755859 L 3.2890625 14.304688 C 2.9060625 14.688688 2.9060625 15.309359 3.2890625 15.693359 L 13.966797 26.371094 L 15 27.40625 C 17.387 24.98925 17.402 21.069969 15 18.667969 L 11.332031 15 L 13.585938 12.746094 C 11.848937 11.008094 11.068375 8.649375 11.234375 6.359375 z'/></svg>";
         $issue = $this->escape($entry->getIssue());
 
-        return "<a class='pill' href='" . $this->escape($entryUtility->getIssueLink($entry)) . "' target='_blank' rel='noopener'>$jiraIcon " .
+        return "<a class='pill' href='" . $this->escape($this->config['jira']['browse'] . $entry->getIssue()) . "' target='_blank' rel='noopener'>$jiraIcon " .
             "<span data-tooltip='Jira issue: $issue'>$issue</span>" .
             $this->renderIssueDetails($entry->getIssueData()) .
             "</a>";
@@ -139,8 +224,10 @@ class TemplateService
             explode(' ', $issueData['assignee']['name'])
         )));
 
-        return " <span data-tooltip='Jira issue type: $type'><img src='" . $this->escape($issueData['type']['icon']) . "' alt='$type'/></span>" .
-            "<span class='status " . $this->escape($issueData['status']['color']) . "' data-tooltip='Jira issue status: $status'>" . $this->escape(mb_substr($issueData['status']['name'], 0, 1)) . "</span>" .
+        $typeIcon = $issueData['type']['icon'] !== '' ? " <span data-tooltip='Jira issue type: $type'><img src='" . $this->escape($issueData['type']['icon']) . "' alt='$type'/></span>" : '';
+
+        return $typeIcon .
+            "<span class='status " . $this->escape($issueData['status']['color']) . "' data-tooltip='Jira issue status'>$status</span>" .
             "<span class='pill person' data-tooltip='Jira issue assignee: $assignee'>$assigneeInitials</span>";
     }
 
