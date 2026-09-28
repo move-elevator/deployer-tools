@@ -228,7 +228,7 @@ This uploads the index application to the host and creates a symbolic link to th
 │   ├── index/
 │   ├── index.php
 │   ├── index.config.php
-│   ├── logo.png (optionally)
+│   ├── logo.svg or logo.png (optionally, SVG preferred)
 │   └── background.png (optionally)
 └── index.php -> .fbd/index.php
 ```

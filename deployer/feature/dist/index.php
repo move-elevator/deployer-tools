@@ -10,6 +10,7 @@ $templateService = new \MoveElevator\FeatureIndex\Service\TemplateService();
 $config = $configReader->initConfig();
 // the title is set in the project's deploy.php and may contain markup for the heading, e.g. <em>
 $projectTitle = htmlspecialchars(strip_tags($config['projectName']), ENT_QUOTES);
+$logo = current(array_filter(['.fbd/logo.svg', '.fbd/logo.png'], 'file_exists'));
 
 // feature instances are test systems, keep the overview out of search engines
 header('X-Robots-Tag: noindex, nofollow');
@@ -21,7 +22,9 @@ header('X-Robots-Tag: noindex, nofollow');
         <meta charset='utf-8'>
         <meta name='viewport' content='width=device-width, initial-scale=1, minimum-scale=1'>
         <meta name='robots' content='noindex, nofollow'>
-        <link rel='icon' type='image/png' href='.fbd/logo.png' />
+        <?php if ($logo): ?>
+        <link rel='icon' type='<?php echo str_ends_with($logo, '.svg') ? 'image/svg+xml' : 'image/png' ?>' href='<?php echo $logo ?>' />
+        <?php endif ?>
 
         <title><?php echo $projectTitle ?></title>
         <link rel="stylesheet" href=".fbd/index/assets/css/pico.min.css">
@@ -47,9 +50,11 @@ header('X-Robots-Tag: noindex, nofollow');
                 </ul>
                 <ul>
                     <?php echo $templateService->listAdditionalLinks($config['additionalLinks']) ?>
+                    <?php if ($logo): ?>
                     <li>
-                        <img title="<?php echo $projectTitle ?>" alt="<?php echo $projectTitle ?>" width="100px" src=".fbd/logo.png" />
+                        <img title="<?php echo $projectTitle ?>" alt="<?php echo $projectTitle ?>" width="100" src="<?php echo $logo ?>" />
                     </li>
+                    <?php endif ?>
                 </ul>
             </nav>
         </header>
