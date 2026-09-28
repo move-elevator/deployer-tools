@@ -159,15 +159,16 @@ class TemplateService
         $links = [];
         $backendPath = $this->config['backendPath'] ?? '';
         if ($backendPath !== '') {
-            $links[] = "<a href='" . $this->escape(rtrim($appUrl, '/') . '/' . ltrim($backendPath, '/')) . "' target='_blank' rel='noopener'>Backend</a>";
+            $links[] = "<span><a href='" . $this->escape(rtrim($appUrl, '/') . '/' . ltrim($backendPath, '/')) . "' target='_blank' rel='noopener'>Backend</a></span>";
         }
         if ($this->config['git']['branch'] !== '') {
-            $links[] = "<a href='" . $this->escape($this->config['git']['branch'] . $entry->getName()) . "' target='_blank' rel='noopener'>Branch</a>";
+            $links[] = "<span><a href='" . $this->escape($this->config['git']['branch'] . $entry->getName()) . "' target='_blank' rel='noopener'>Branch</a></span>";
         }
         // revealed by index.js, the clipboard needs JavaScript
-        $links[] = "<button type='button' class='copy-url' data-copy-url='" . $this->escape($appUrl) . "' hidden>Copy URL</button>";
+        $links[] = "<span hidden><button type='button' class='copy-url' data-copy-url='" . $this->escape($appUrl) . "'>Copy URL</button></span>";
 
-        // separators are added in CSS, so none is left over next to the hidden copy button
+        // separators are added in CSS on the wrapping spans, so they are neither part of a link
+        // nor left over next to the hidden copy button
         return "<small class='links'>" . implode('', $links) . "</small>";
     }
 
