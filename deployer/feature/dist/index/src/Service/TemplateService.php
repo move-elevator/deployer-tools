@@ -52,7 +52,7 @@ class TemplateService
         $searchText = mb_strtolower(implode(' ', [$entry->getName(), $entry->getIssue(), $entry->getIssueData()['summary'] ?? '']));
 
         return "<li class='instance' data-search='" . $this->escape($searchText) . "'>" .
-            "<div class='pill' data-tooltip='" . ucfirst($category) . " branch' data-type='" . $category . "'><span aria-hidden='true'>" . strtoupper($category[0]) . "</span><span class='visually-hidden'>" . ucfirst($category) . " branch</span></div>" .
+            "<div class='pill' data-tooltip='" . ucfirst($category) . " branch' data-placement='bottom' data-type='" . $category . "'><span aria-hidden='true'>" . strtoupper($category[0]) . "</span><span class='visually-hidden'>" . ucfirst($category) . " branch</span></div>" .
             "<div class='entry-details'>" .
             "<a class='entry' href='" . $this->escape($appUrl) . "'><strong>" . $this->escape($entry->getName()) . "</strong></a> <sup>" . $this->escape($entry->getTag()) . "</sup>" .
             $this->renderBadges($entry) .
