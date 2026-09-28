@@ -259,17 +259,18 @@ function requireSyncTool(string $action): string
 /**
  * Runs a remote command with the possibility to overwrite the default command options
  */
-function runExtended(string $command, ?array $options = [], ?int $timeout = null, ?int $idle_timeout = null, ?string $secret = null, ?array $env = null, ?bool $real_time_output = null, ?bool $no_throw = null): string
+function runExtended(string $command, ?int $timeout = null, ?int $idle_timeout = null, ?string $secret = null, ?array $env = null, ?bool $real_time_output = null, ?bool $no_throw = null): string
 {
+    $secret = $secret ?? (string)get('run_secret');
+
     return run(
         $command,
-        $options,
-            $timeout ?? (int)get('run_timeout'),
-            $idle_timeout ?? (int)get('run_idle_timeout'),
-            $secret ?? (string)get('run_secret'),
-            $env ?? (array)get('run_env'),
-            $real_time_output ?? (bool)get('run_real_time_output'),
-            $no_throw ?? (bool)get('run_no_throw')
+        env: $env ?? (array)get('run_env'),
+        secrets: '' !== $secret ? ['secret' => $secret] : null,
+        nothrow: $no_throw ?? (bool)get('run_no_throw'),
+        forceOutput: $real_time_output ?? (bool)get('run_real_time_output'),
+        timeout: $timeout ?? (int)get('run_timeout'),
+        idleTimeout: $idle_timeout ?? (int)get('run_idle_timeout'),
     );
 }
 
