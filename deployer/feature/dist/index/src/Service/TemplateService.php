@@ -176,7 +176,6 @@ class TemplateService
         $meta = array_filter([
             $deployment->user !== '' ? 'by ' . $deployment->user : '',
             $deployment->release !== '' ? 'release ' . $deployment->release : '',
-            substr($deployment->revision, 0, 7),
         ]);
 
         return "<kbd data-placement='left' data-tooltip='Last deployment: " . date('d.m.Y H:i', $deployment->timestamp) . "'>" . $this->formatRelativeTime($deployment->timestamp) . "</kbd>" .

@@ -245,7 +245,7 @@ Issue details (type, status, assignee) are only requested from Jira when `featur
 Per instance the index shows:
 
 - the Jira issue summary, status, type and assignee
-- the last deployment (relative, absolute time as tooltip), the deploying user, the release and the short commit hash, read from Deployer's `.dep/releases_log` and `current/REVISION`
+- the last deployment (relative, absolute time as tooltip), the deploying user and the release, read from Deployer's `.dep/releases_log`
 - a `locked` badge while `.dep/deploy.lock` exists, i.e. a deployment is running or was aborted
 - a `stale` badge for feature instances without a deployment for `feature_index_stale_days` days (default `14`, `0` disables it) or with a done Jira issue, as a hint for `feature:stop` or `feature:cleanup`
 - links to the backend (`feature_index_backend_path`, `typo3/` for TYPO3), the git branch (`feature_index_git_branch`) and a button copying the instance URL
