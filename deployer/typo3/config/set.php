@@ -91,6 +91,7 @@ set('rsync_default_excludes', [
 ]);
 
 set('feature_index_app_type', 'typo3');
+set('feature_index_backend_path', 'typo3/');
 
 /**
  * Env Keys

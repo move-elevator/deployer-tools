@@ -5,7 +5,7 @@ namespace MoveElevator\FeatureIndex\Model;
 class Entry
 {
     protected string $name;
-    protected string $lastUpdated;
+    protected Deployment $deployment;
     protected string $category;
     protected string $tag;
     protected string $issue;
@@ -34,20 +34,14 @@ class Entry
         $this->name = $name;
     }
 
-    /**
-     * @return string
-     */
-    public function getLastUpdated(): string
+    public function getDeployment(): Deployment
     {
-        return $this->lastUpdated;
+        return $this->deployment;
     }
 
-    /**
-     * @param string $lastUpdated
-     */
-    public function setLastUpdated(string $lastUpdated): void
+    public function setDeployment(Deployment $deployment): void
     {
-        $this->lastUpdated = $lastUpdated;
+        $this->deployment = $deployment;
     }
 
     /**

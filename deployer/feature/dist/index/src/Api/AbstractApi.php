@@ -2,9 +2,7 @@
 
 namespace MoveElevator\FeatureIndex\Api;
 
-use MoveElevator\FeatureIndex\Model\Entry;
 use MoveElevator\FeatureIndex\Service\IOService;
-use MoveElevator\FeatureIndex\Utility\EntryUtility;
 
 abstract class AbstractApi
 {
@@ -12,40 +10,25 @@ abstract class AbstractApi
     const CACHE_PATH = __DIR__ . '/../../var/cache/';
     const CACHE_LIFETIME = 300;
 
-    protected function getCache(string $issue, $cachePath = self::CACHE_PATH, $cacheLifeTime = self::CACHE_LIFETIME) {
-        $ioService = new IOService();
-
-        $ioService->directoryExists($cachePath, true);
-
-        $filePath = $cachePath . $issue;
-        if (file_exists($filePath)) {
-            $createDate = filectime($filePath);
-
-            if (($createDate + $cacheLifeTime) > time()) {
-                return json_decode(file_get_contents($filePath),true);
-            }
+    // cache files are PHP files returning the data, since the cache directory is inside the web root
+    // and must not serve the cached responses as plain text
+    protected function getCache(string $key): ?array
+    {
+        $filePath = static::CACHE_PATH . $key . '.php';
+        if (!file_exists($filePath) || (filemtime($filePath) + static::CACHE_LIFETIME) <= time()) {
+            return null;
         }
-        return false;
+
+        $data = require $filePath;
+        return is_array($data) ? $data : null;
     }
 
-    protected function setCache(string $issue, string $content, $cachePath = self::CACHE_PATH) {
+    protected function setCache(string $key, array $data): void
+    {
         $ioService = new IOService();
-        $ioService->directoryExists($cachePath, true);
-        $filePath = $cachePath . $issue;
+        $ioService->directoryExists(static::CACHE_PATH, true);
 
         umask(0002);
-        file_put_contents($filePath, $content);
-    }
-
-    // todo: cleanup
-    public function cleanUpCache($cachePath = self::CACHE_PATH, $cacheLifeTime = self::CACHE_LIFETIME) {
-        $ioService = new IOService();
-        if (!$ioService->directoryExists($cachePath)) return;
-        foreach (array_diff(scandir($cachePath), array('.', '..')) as $cacheFile) {
-            $createDate = filectime($cacheFile);
-            if (($createDate + $cacheLifeTime) <= time()) {
-                unlink($cacheFile);
-            }
-        }
+        file_put_contents(static::CACHE_PATH . $key . '.php', "<?php\n\nreturn " . var_export($data, true) . ";\n", LOCK_EX);
     }
 }

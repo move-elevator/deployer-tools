@@ -8,18 +8,28 @@ $ioService = new \MoveElevator\FeatureIndex\Service\IOService();
 $templateService = new \MoveElevator\FeatureIndex\Service\TemplateService();
 
 $config = $configReader->initConfig();
+// the title is set in the project's deploy.php and may contain markup for the heading, e.g. <em>
+$projectTitle = htmlspecialchars(strip_tags($config['projectName']), ENT_QUOTES);
+$logo = current(array_filter(['.fbd/logo.svg', '.fbd/logo.png'], 'file_exists'));
+
+// feature instances are test systems, keep the overview out of search engines
+header('X-Robots-Tag: noindex, nofollow');
 
 ?>
-
-<html>
+<!doctype html>
+<html lang="en">
     <head>
         <meta charset='utf-8'>
         <meta name='viewport' content='width=device-width, initial-scale=1, minimum-scale=1'>
-        <link rel='icon' type='image/png' href='.fbd/logo.png' />
+        <meta name='robots' content='noindex, nofollow'>
+        <?php if ($logo): ?>
+        <link rel='icon' type='<?php echo str_ends_with($logo, '.svg') ? 'image/svg+xml' : 'image/png' ?>' href='<?php echo $logo ?>' />
+        <?php endif ?>
 
-        <title><?php echo strip_tags($config['projectName']) ?></title>
-        <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@1.5.12/css/pico.min.css">
+        <title><?php echo $projectTitle ?></title>
+        <link rel="stylesheet" href=".fbd/index/assets/css/pico.min.css">
         <link rel="stylesheet" href=".fbd/index/assets/css/style.css">
+        <script src=".fbd/index/assets/js/index.js" defer></script>
         <style>
             <?php if (file_exists('.fbd/background.png')) {
                     echo "body {background-image: url('.fbd/background.png');background-repeat: repeat-y;background-attachment: fixed;background-position: right;background-size: contain;min-height: 100vh;}";
@@ -29,39 +39,37 @@ $config = $configReader->initConfig();
     </head>
     <body>
         <?php echo $templateService->renderDiskSpace($ioService) ?>
-        <header class="container" style="padding-bottom: 0">
+        <header class="container">
             <nav>
                 <ul>
                     <li>
                         <hgroup>
-                            <h2><?php echo $config['projectName'] ?> <div style="display: inline-block; width: 25px; position: absolute; margin-left: 5px;"><?php echo $templateService->getApplicationType($config['applicationType']) ?></div></h2>
-                            <h3 data-tooltip="The feature branch deployment describes the deployment and initialization process of multiple application instances on the same host. The feature instances are used for testing purposes and managing the release workflow.">Feature Branch Deployment</h3>
+                            <h1><?php echo $config['projectName'] ?> <span class="app-type" aria-hidden="true"><?php echo $templateService->getApplicationType($config['applicationType']) ?></span></h1>
+                            <p>Feature Branch Deployment</p>
                         </hgroup>
                     </li>
                 </ul>
                 <ul>
-                    <?php echo $templateService->listAdditionalLinks($config['additionalLinks']) ?>
+                    <?php echo $templateService->renderAdditionalLinks($config['additionalLinks']) ?>
+                    <?php if ($logo): ?>
                     <li>
-                        <img title="<?php echo $config['projectName'] ?>" alt="<?php echo $config['projectName'] ?>" width="100px" src=".fbd/logo.png" />
+                        <img class="logo" title="<?php echo $projectTitle ?>" alt="<?php echo $projectTitle ?>" width="56" src="<?php echo $logo ?>" />
                     </li>
+                    <?php endif ?>
                 </ul>
             </nav>
         </header>
         <main class="container">
-            <section>
-                <table>
-                    <tbody>
-                        <?php
-                        /**
-                         * List all available feature branches
-                         */
-
-                        $entries = $ioService->getDirectoryEntries(realpath(dirname(__FILE__)) . '/..');
-                        echo $templateService->renderEntries($entries);
-                        ?>
-                    </tbody>
-                </table>
-            </section>
+            <?php $entries = $ioService->getDirectoryEntries(realpath(dirname(__FILE__)) . '/..') ?>
+            <div class="toolbar">
+                <?php echo $templateService->renderOverview($entries, $ioService) ?>
+                <!-- revealed by index.js, filtering needs JavaScript -->
+                <label class="filter" hidden>
+                    <span class="visually-hidden">Filter instances</span>
+                    <input type="search" id="instance-filter" placeholder="Filter by branch, issue or summary" autocomplete="off">
+                </label>
+            </div>
+            <?php echo $templateService->renderInstances((new \MoveElevator\FeatureIndex\Utility\EntryUtility())->groupEntries($entries)) ?>
         </main>
     </body>
 </html>

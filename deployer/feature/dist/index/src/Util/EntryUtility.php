@@ -2,13 +2,13 @@
 
 namespace MoveElevator\FeatureIndex\Utility;
 
-use MoveElevator\FeatureIndex\Api\JiraApi;
 use MoveElevator\FeatureIndex\Model\Entry;
 use MoveElevator\FeatureIndex\Service\ConfigReader;
+use MoveElevator\FeatureIndex\Service\DeploymentReader;
 
 class EntryUtility
 {
-    protected JiraApi $jiraApi;
+    protected DeploymentReader $deploymentReader;
     protected ConfigReader $configReader;
     protected array $config;
     // subdomain-mode instance names are lowercased, so category/issue detection below must
@@ -19,7 +19,7 @@ class EntryUtility
     {
         $this->configReader = new ConfigReader();
         $this->config = $this->configReader->initConfig();
-        $this->jiraApi = new JiraApi($this->config['jira']['api'], $this->config['jira']['auth']);
+        $this->deploymentReader = new DeploymentReader();
         $this->regexFlags = $this->isSubdomainMode() ? 'i' : '';
     }
 
@@ -32,45 +32,32 @@ class EntryUtility
     {
         $entry = new Entry($name);
 
-        $entry->setLastUpdated(date('d.m.Y', filectime($basePath . '/' .  $name)));
+        $entry->setDeployment($this->deploymentReader->read($basePath . '/' . $name, $basePath));
         $entry->setCategory($this->getEntryCategory($name));
         $entry->setTag($this->getEntryTag($name));
         $entry->setIssue($this->getEntryIssue($name));
-
-        $this->jiraApi->checkIssue($entry);
 
         return $entry;
     }
 
     /**
-     * @param array $array
-     * @return mixed
+     * @param Entry[] $entries
+     * @return array{reference: Entry[], feature: Entry[], release: Entry[]}
      */
-    public function sortDirectoryEntries(array $array): array
+    public function groupEntries(array $entries): array
     {
-        // alphabetic order
-        asort($array);
-        // custom order
-        usort($array, function ($a, $b) {
-            $order = ['main', 'master', 'stage', 'test', 'release'];
-            $pos_a = $this->searchArrayLike($a->getName(), $order);
-            $pos_b = $this->searchArrayLike($b->getName(), $order);
-            return $pos_a - $pos_b;
-        });
-        return $array;
-    }
+        $groups = ['reference' => [], 'feature' => [], 'release' => []];
+        foreach ($entries as $entry) {
+            $groups[in_array($entry->getCategory(), ['feature', 'release'], true) ? $entry->getCategory() : 'reference'][] = $entry;
+        }
 
-    /**
-     * @param \MoveElevator\FeatureIndex\Model\Entry $entry
-     * @return string
-     */
-    public function getIssueLink(Entry $entry): string
-    {
+        $order = ['main', 'master', 'stage', 'test'];
+        usort($groups['reference'], fn (Entry $a, Entry $b) => [$this->searchArrayLike($a->getName(), $order), $a->getName()] <=> [$this->searchArrayLike($b->getName(), $order), $b->getName()]);
+        // most recently deployed first, that is what is being worked on
+        usort($groups['feature'], static fn (Entry $a, Entry $b) => $b->getDeployment()->timestamp <=> $a->getDeployment()->timestamp);
+        usort($groups['release'], static fn (Entry $a, Entry $b) => version_compare(ltrim($b->getTag(), 'v'), ltrim($a->getTag(), 'v')));
 
-        $configReader = new ConfigReader();
-        $config = $configReader->initConfig();
-
-        return $entry->getIssue() ? $config['jira']['browse'] . $entry->getIssue() : '';
+        return $groups;
     }
 
     /**
@@ -79,7 +66,7 @@ class EntryUtility
      */
     private function getEntryCategory(string $name): string
     {
-        if (preg_match('/(release)-(\d+.\d+.\d+)/' . $this->regexFlags, $name)) return 'release';
+        if (preg_match('/(release)-(\d+\.\d+\.\d+)/' . $this->regexFlags, $name)) return 'release';
         if (preg_match('/([A-Z]+)-(\d+)/' . $this->regexFlags, $name)) return 'feature';
         return $name;
     }
@@ -90,7 +77,7 @@ class EntryUtility
      */
     private function getEntryTag(string $name): string
     {
-        if (preg_match('/(release)-(\d+.\d+.\d+)/' . $this->regexFlags, $name, $version)) return 'v' . $version[2];
+        if (preg_match('/(release)-(\d+\.\d+\.\d+)/' . $this->regexFlags, $name, $version)) return 'v' . $version[2];
         return '';
     }
 
