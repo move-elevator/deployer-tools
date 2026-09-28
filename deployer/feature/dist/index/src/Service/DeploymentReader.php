@@ -21,7 +21,6 @@ class DeploymentReader
             $timestamp !== false ? $timestamp : $fallbackTimestamp,
             (string)($release['user'] ?? ''),
             (string)($release['release_name'] ?? ''),
-            $this->readFile($deployPath . '/current/REVISION'),
             is_file($deployPath . '/.dep/deploy.lock') ? $this->readFile($deployPath . '/.dep/deploy.lock') : null,
         );
     }
