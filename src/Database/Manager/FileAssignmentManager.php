@@ -41,6 +41,8 @@ class FileAssignmentManager
             throw new \RuntimeException('Failed to encode database assignments.');
         }
 
+        runExtended('mkdir -p ' . dirname($this->filePath));
+
         $tempFile = '.deployer.database_assignments.tmp';
         file_put_contents($tempFile, $content);
         upload($tempFile, $this->filePath, ['progress_bar' => false, 'display_stats' => false]);
