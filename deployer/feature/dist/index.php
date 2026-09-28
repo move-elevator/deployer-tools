@@ -12,6 +12,22 @@ $config = $configReader->initConfig();
 $projectTitle = htmlspecialchars(strip_tags($config['projectName']), ENT_QUOTES);
 $logo = current(array_filter(['.fbd/logo.svg', '.fbd/logo.png'], 'file_exists'));
 $hasCustomBackground = file_exists('.fbd/background.png');
+$bgLogoWidth = $logo !== '' ? getBgLogoWidth($logo) : 0;
+
+/**
+ * An SVG logo scales to any size without loss, a raster one pixelates once blown up far beyond
+ * its natural resolution. Cap the watermark below (see .bg-logo) to a modest multiple of the
+ * source size instead, so a small header icon does not turn into a blocky mess in the background.
+ */
+function getBgLogoWidth(string $logo): int
+{
+    if (str_ends_with($logo, '.svg')) {
+        return 416;
+    }
+
+    $naturalWidth = (getimagesize($logo) ?: [0])[0];
+    return $naturalWidth > 0 ? (int)max(160, min($naturalWidth * 3, 416)) : 160;
+}
 
 // feature instances are test systems, keep the overview out of search engines
 header('X-Robots-Tag: noindex, nofollow');
@@ -43,7 +59,7 @@ header('X-Robots-Tag: noindex, nofollow');
         <?php if (!$hasCustomBackground): ?>
         <div class="bg-pattern" aria-hidden="true"></div>
         <?php if ($logo): ?>
-        <img class="bg-logo" src="<?php echo $logo ?>" alt="" aria-hidden="true">
+        <img class="bg-logo" style="--bg-logo-width: <?php echo $bgLogoWidth ?>px" src="<?php echo $logo ?>" alt="" aria-hidden="true">
         <?php endif ?>
         <?php endif ?>
         <?php echo $templateService->renderDiskSpace($ioService) ?>
