@@ -56,6 +56,10 @@ set('database_pool', [
 ]);
 ```
 
+### Feature index
+
+When `feature:index` runs with this manager type, the feature branch overview page (see [FEATURE.md](FEATURE.md)) shows how many pool databases are still free, e.g. "3/10 databases free", read live from the same `database_assignments.json` the deploy tasks maintain.
+
 ## Mittwald API
 
 This database manager type uses the [Mittwald API](https://developer.mittwald.de/) to create and delete databases on Mittwald hosting environments. The database creation is asynchronous - after the API returns, it polls the MySQL user status until it reports "ready" and verifies TCP connectivity before proceeding.

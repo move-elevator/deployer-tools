@@ -75,6 +75,12 @@ class TemplateService
         if ($stale > 0) $facts[] = "$stale stale";
         if ($locked > 0) $facts[] = "$locked locked";
 
+        $poolSize = (int)($this->config['databasePoolSize'] ?? 0);
+        if ('simple' === ($this->config['databaseManagerType'] ?? '') && $poolSize > 0) {
+            $free = max(0, $poolSize - $ioService->getUsedDatabaseCount());
+            $facts[] = "$free/$poolSize databases free";
+        }
+
         $disk = round($ioService->getDiskFullSpacePercent()) . "% disk used, " . round($ioService->getDiskTotalFree()) . " GB free";
         $facts[] = $ioService->getDiskSpaceStatus() !== 'green' ? "<strong class='disk-warning'>Low disk space: $disk</strong>" : $disk;
 

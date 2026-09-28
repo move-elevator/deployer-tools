@@ -9,6 +9,7 @@ use MoveElevator\FeatureIndex\Utility\EntryUtility;
 class IOService
 {
     private const BYTES_PER_GB = 1000 ** 3;
+    private const DATABASE_ASSIGNMENTS_PATH = __DIR__ . '/../../../database_assignments.json';
 
     public string $basePath;
 
@@ -84,6 +85,20 @@ class IOService
 
     public function getDiskSpaceColor(): string {
         return self::DISK_SPACE_LEVELS[$this->getDiskSpaceStatus()]['color'];
+    }
+
+    /**
+     * Number of pool databases (see Simple database manager) currently assigned to a feature
+     * instance, read from the same database_assignments.json the deploy tasks maintain.
+     */
+    public function getUsedDatabaseCount(): int
+    {
+        if (!file_exists(self::DATABASE_ASSIGNMENTS_PATH)) {
+            return 0;
+        }
+
+        $assignments = json_decode(file_get_contents(self::DATABASE_ASSIGNMENTS_PATH), true);
+        return is_array($assignments) ? count($assignments) : 0;
     }
 
     public function directoryExists(string $path, bool $forceCreate = false): bool
