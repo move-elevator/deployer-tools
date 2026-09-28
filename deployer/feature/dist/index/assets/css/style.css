@@ -248,7 +248,7 @@ main section > h2 {
 .links a:hover, .copy-url:hover {
     color: var(--pico-primary);
 }
-.links > :not([hidden]) ~ :not([hidden])::before {
+.links > span:not([hidden]) ~ span:not([hidden])::before {
     content: '·';
     display: inline-block;
     margin: 0 .35em;

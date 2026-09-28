@@ -12,7 +12,7 @@ if (navigator.clipboard) {
     };
 
     document.querySelectorAll('[data-copy-url]').forEach((button) => {
-        button.hidden = false;
+        button.parentElement.hidden = false;
         button.addEventListener('click', () => {
             const url = new URL(button.dataset.copyUrl, document.baseURI).href;
             navigator.clipboard.writeText(url)
