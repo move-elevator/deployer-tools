@@ -250,7 +250,7 @@ Per instance the index shows:
 - a `stale` badge for feature instances without a deployment for `feature_index_stale_days` days (default `14`, `0` disables it) or with a done Jira issue, as a hint for `feature:stop` or `feature:cleanup`
 - links to the backend (`feature_index_backend_path`, `typo3/` for TYPO3), the git branch (`feature_index_git_branch`) and a button copying the instance URL
 
-Instances are grouped into the stage (`main`, `master`, `stage`, `test`), feature instances (most recently deployed first) and releases. A summary line counts instances, stale and locked ones and shows the disk usage, a filter narrows the list by branch, issue key or summary. The page follows the system light or dark mode.
+Instances are grouped into the stage (the instances listed in `feature_stop_disallowed_names`, `main` and `master` by default), releases (`release-x.y.z`) and feature instances (everything else, with or without an issue key, most recently deployed first). A summary line counts instances, stale and locked ones and shows the disk usage, a filter narrows the list by branch, issue key or summary. The page follows the system light or dark mode.
 
 The index page requires PHP 8.1 on the host.
 
