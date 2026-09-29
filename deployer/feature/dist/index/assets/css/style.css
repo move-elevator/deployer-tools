@@ -14,7 +14,7 @@ main {
 }
 
 /* Decorative background: a faint dot grid in the brand accent plus an oversized, translucent
-   echo of the project logo bleeding off the corner. Both are skipped when a project supplies its
+   echo of the project logo tucked into the corner. Both are skipped when a project supplies its
    own background.png (see index.php), so a custom look is never fought over. */
 .bg-pattern {
     position: fixed;
@@ -28,18 +28,15 @@ main {
 }
 .bg-logo {
     position: fixed;
-    right: 0;
-    bottom: 0;
+    right: 1rem;
+    bottom: 1rem;
     z-index: -1;
     /* --bg-logo-width (set inline) caps a raster logo to a modest multiple of its natural size,
-       an SVG has no such limit; the blur hides both the crop seam and any residual pixelation */
+       an SVG has no such limit; the blur hides any residual pixelation */
     width: min(var(--bg-logo-width, 416px), 60vw);
     height: auto;
     opacity: .07;
     filter: blur(2px);
-    /* percentage translate crops a consistent sliver off the corner whatever the logo's aspect
-       ratio; a fixed rem offset used to eat half a short, wide wordmark's height */
-    transform: translate(15%, 15%);
     pointer-events: none;
     user-select: none;
 }
@@ -49,14 +46,16 @@ main {
     }
 }
 @keyframes bg-logo-breathe {
-    0%, 100% { opacity: .06; transform: translate(15%, 15%) scale(1); }
-    50% { opacity: .11; transform: translate(15%, 15%) scale(1.03); }
+    0%, 100% { opacity: .06; transform: scale(1); }
+    50% { opacity: .11; transform: scale(1.03); }
 }
 
-/* Header */
+/* Header: a bottom divider separates it from the content instead of relying on whitespace alone */
 header.container {
     padding-top: 1.5rem;
-    padding-bottom: 0;
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--pico-muted-border-color);
 }
 header hgroup {
     margin-bottom: 0;
@@ -64,6 +63,11 @@ header hgroup {
 header h1 {
     margin-bottom: .25rem;
     font-size: 1.75rem;
+}
+header hgroup p {
+    margin: 0;
+    font-size: .95rem;
+    color: var(--pico-muted-color);
 }
 .app-type svg {
     width: 1.1rem;
@@ -173,9 +177,20 @@ main section > h2 {
 .pill[data-type="main"], .pill[data-type="master"] {
     background: var(--fbd-main);
 }
+/* the pill sits at the left edge of every row; anchor its tooltip there too, or Pico's default
+   centering overflows past the viewport's left edge */
+.instances .pill[data-type]::before {
+    left: 0;
+    transform: translate(0, .25rem);
+}
+.instances .pill[data-type]:is(:hover, :focus)::before {
+    --pico-tooltip-slide-to: translate(0, .25rem);
+    transform: translate(0, -.75rem);
+}
 .entry {
     font-size: 1.05rem;
     text-decoration: none;
+    overflow-wrap: anywhere;
 }
 .entry:hover, .entry:focus-visible {
     text-decoration: underline;
@@ -225,6 +240,12 @@ main section > h2 {
 }
 .issue .pill:hover {
     border-color: var(--pico-primary);
+}
+/* every tooltip inside the chip sits on an already-clickable link; Pico's default dotted
+   underline (meant to hint at a hover-only affordance) is redundant here */
+.issue .pill [data-tooltip] {
+    border-bottom: none;
+    cursor: inherit;
 }
 .issue .pill svg {
     fill: currentColor;
