@@ -181,9 +181,11 @@ class TemplateService
     private function renderDeployment(Entry $entry): string
     {
         $deployment = $entry->getDeployment();
+        // a non-breaking space keeps "release" glued to its number, so a wrap only ever happens
+        // at the " · " separator below, never between the word and its value
         $meta = array_filter([
             $deployment->user !== '' ? 'by ' . $deployment->user : '',
-            $deployment->release !== '' ? 'release ' . $deployment->release : '',
+            $deployment->release !== '' ? "release\u{A0}" . $deployment->release : '',
         ]);
 
         return "<time datetime='" . date(DATE_ATOM, $deployment->timestamp) . "' data-tooltip='Last deployment: " . date('d.m.Y H:i', $deployment->timestamp) . "'>" . $this->formatRelativeTime($deployment->timestamp) . "</time>" .
