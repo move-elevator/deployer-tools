@@ -54,7 +54,7 @@ main {
 header.container {
     padding-top: 1.5rem;
     padding-bottom: 1.25rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     border-bottom: 1px solid var(--pico-muted-border-color);
 }
 header hgroup {
@@ -93,6 +93,7 @@ header hgroup p {
 }
 .overview {
     margin: 0;
+    font-size: .85rem;
     color: var(--pico-muted-color);
 }
 .disk-warning {
@@ -108,7 +109,7 @@ header hgroup p {
     height: 2.4rem;
     padding-top: 0;
     padding-bottom: 0;
-    font-size: .9rem;
+    font-size: .85rem;
 }
 
 /* Groups */
