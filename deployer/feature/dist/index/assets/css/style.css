@@ -81,6 +81,21 @@ header hgroup p {
     max-width: 10rem;
     border-radius: var(--pico-border-radius);
 }
+/* additional links read as secondary/utility nav, muted and smaller, so a colorful or bold
+   project logo (e.g. a wordmark with its own styling baked in) doesn't have to compete with them */
+.header-links a {
+    font-size: .9rem;
+    color: var(--pico-muted-color);
+}
+.header-links a:hover, .header-links a:focus-visible {
+    color: var(--pico-primary);
+}
+/* a divider sets the logo apart as its own "brand" zone instead of just another nav item */
+.header-logo {
+    padding-left: 1.5rem;
+    margin-left: .5rem;
+    border-left: 1px solid var(--pico-muted-border-color);
+}
 
 /* Overview and filter */
 .toolbar {
