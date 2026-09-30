@@ -45,6 +45,7 @@ function renderIndexTemplate(): void
         'backendPath' => has('feature_index_backend_path') ? get('feature_index_backend_path') : '',
         'staleDays' => (int)get('feature_index_stale_days'),
         'referenceNames' => get('feature_stop_disallowed_names'),
+        'hideDeployUsers' => array_map('mb_strtolower', get('feature_index_hide_deploy_users')),
         'databaseManagerType' => get('database_manager_type'),
         'databasePoolSize' => 'simple' === get('database_manager_type') && has('database_pool') ? count(get('database_pool')) : 0,
     ];
