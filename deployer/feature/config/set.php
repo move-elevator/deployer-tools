@@ -82,6 +82,9 @@ set('feature_index_git_branch', '');
 //set('feature_index_backend_path', 'typo3/');
 // feature instances without a deployment for this many days (or with a done Jira issue) are marked as stale
 set('feature_index_stale_days', 14);
+// usernames whose "by <user>" is dropped from the deployment info, e.g. a CI service account that
+// deploys every release and so carries no information; matched case-insensitively
+set('feature_index_hide_deploy_users', []);
 
 /**
  * Feature Stop

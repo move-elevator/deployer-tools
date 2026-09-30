@@ -181,10 +181,12 @@ class TemplateService
     private function renderDeployment(Entry $entry): string
     {
         $deployment = $entry->getDeployment();
+        $hideDeployUsers = $this->config['hideDeployUsers'] ?? [];
+        $showUser = $deployment->user !== '' && !in_array(mb_strtolower($deployment->user), $hideDeployUsers, true);
         // a non-breaking space keeps "release" glued to its number, so a wrap only ever happens
         // at the " · " separator below, never between the word and its value
         $meta = array_filter([
-            $deployment->user !== '' ? 'by ' . $deployment->user : '',
+            $showUser ? 'by ' . $deployment->user : '',
             $deployment->release !== '' ? "release\u{A0}" . $deployment->release : '',
         ]);
 
