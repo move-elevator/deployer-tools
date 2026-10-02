@@ -165,7 +165,7 @@ class TemplateService
         $links = [];
         $backendPath = $this->config['backendPath'] ?? '';
         if ($backendPath !== '') {
-            $links[] = "<span><a href='" . $this->escape(rtrim($appUrl, '/') . '/' . ltrim($backendPath, '/')) . "' target='_blank' rel='noopener'>Backend</a></span>";
+            $links[] = "<span><a href='" . $this->escape(rtrim($appUrl, '/') . '/' . trim($backendPath, '/')) . "' target='_blank' rel='noopener'>Backend</a></span>";
         }
         if ($this->config['git']['branch'] !== '') {
             $links[] = "<span><a href='" . $this->escape($this->config['git']['branch'] . $entry->getName()) . "' target='_blank' rel='noopener'>Branch</a></span>";
