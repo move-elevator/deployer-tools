@@ -26,7 +26,7 @@ task('security:check:composer', function () {
     }
     $vulnerabilities = json_decode($output, true);
     if (!is_array($vulnerabilities)) {
-        throw new GracefulShutdownException('Composer security check did not return valid JSON: ' . substr(trim($output), 0, 500));
+        throw new GracefulShutdownException('Composer security check did not return valid JSON: ' . ('' !== trim($output) ? substr(trim($output), 0, 500) : 'empty output, run with -v to see the error'));
     }
     $formattedIssues = formatComposerIssues($vulnerabilities);
 
@@ -54,7 +54,7 @@ task('security:check:npm', function () {
     }
     $vulnerabilities = json_decode($output, true);
     if (!is_array($vulnerabilities)) {
-        throw new GracefulShutdownException('npm audit did not return valid JSON: ' . substr(trim($output), 0, 500));
+        throw new GracefulShutdownException('npm audit did not return valid JSON: ' . ('' !== trim($output) ? substr(trim($output), 0, 500) : 'empty output, run with -v to see the error'));
     }
     $formattedIssues = formatNpmIssues($vulnerabilities);
 
