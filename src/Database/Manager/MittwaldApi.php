@@ -216,13 +216,21 @@ class MittwaldApi extends AbstractManager implements ManagerInterface
      */
     private function getDatabaseByFeature(string $feature): ?MySqlDatabase
     {
-        $response = $this->initClient()
-            ->database()
-            ->listMysqlDatabases(
-                new ListMysqlDatabasesRequest(
-                    projectId: get('mittwald_project_id')
-                )
+        $projectId = get('mittwald_project_id');
+        $request = new ListMysqlDatabasesRequest(projectId: $projectId);
+        $databaseClient = $this->initClient()->database();
+
+        try {
+            $response = $databaseClient->listMysqlDatabases($request);
+        } catch (\TypeError $e) {
+            // mittwald/api-client cannot build its error response when the API answers with a non-JSON body (e.g. an empty 404)
+            throw new \RuntimeException(
+                "Failed to list databases for project '{$projectId}': the Mittwald API returned an error without a parseable body. "
+                . 'Check that "mittwald_project_id" is correct and that the API token has access to this project.',
+                0,
+                $e,
             );
+        }
 
         foreach ($response->getBody() as $database) {
             /* @var MySqlDatabase $database */
