@@ -132,7 +132,7 @@ task('feature:sync', function () {
             $useRsync = $isPhpSyncTool ? '' : '--use-rsync';
             // php-sync-tool has file sync integrated, no separate file_sync_tool call needed
             $withFiles = $isPhpSyncTool && false !== get('file_sync_tool') ? '--with-files' : '';
-            $filesTarget = $isPhpSyncTool && null !== get('feature_sync_target_path_files')
+            $filesTarget = '' !== $withFiles && null !== get('feature_sync_target_path_files')
                 ? '--files-target ' . escapeshellarg(get('feature_sync_target_path_files'))
                 : '';
             info('Synching database');
